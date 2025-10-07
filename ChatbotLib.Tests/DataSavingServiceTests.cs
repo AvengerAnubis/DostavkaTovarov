@@ -8,7 +8,7 @@ namespace ChatbotLib.Tests
 	[Trait("Category", "Modules")]
 	public class DataSavingServiceTests
 	{
-        private JsonSerializerOptions _options = new()
+        private readonly JsonSerializerOptions _options = new()
         {
             WriteIndented = false,
             IncludeFields = false,
@@ -18,24 +18,25 @@ namespace ChatbotLib.Tests
         [Fact]
         public async Task DataSavingService_SaveDataToFile_FileCreated()
         {
-            string expectedFilePath = $@"{DataSavingService.SaveFilesPath}\test.bin";
+            string filePath = Path.Combine(DataSavingService.SaveFilesPath, "test.bin");
             byte[] data = Encoding.UTF8.GetBytes("Hello, Test!");
             using DataSavingService dataSavingService = new();
 
             await dataSavingService.SaveData(data, "test.bin");
 
-            Assert.True(File.Exists(expectedFilePath), "File should be created.");
+            Assert.True(File.Exists(filePath), "File should be created.");
 
-            byte[] fileData = await File.ReadAllBytesAsync(expectedFilePath);
+            byte[] fileData = await File.ReadAllBytesAsync(filePath);
             Assert.Equal(data, fileData);
 
-            File.Delete(expectedFilePath);
+            if (File.Exists(filePath))
+                File.Delete(filePath);
         }
 
         [Fact]
         public async Task DataSavingService_LoadDataFromFile_DataCorrectlyLoaded()
         {
-            string filePath = $@"{DataSavingService.SaveFilesPath}\test.bin";
+            string filePath = Path.Combine(DataSavingService.SaveFilesPath, "test.bin");
             byte[] originalData = Encoding.UTF8.GetBytes("Hello, Data!");
             await File.WriteAllBytesAsync(filePath, originalData);
 
@@ -44,13 +45,14 @@ namespace ChatbotLib.Tests
 
             Assert.Equal(originalData, loadedData);
 
-            File.Delete(filePath);
+            if (File.Exists(filePath))
+                File.Delete(filePath);
         }
 
         [Fact]
         public async Task DataSavingService_SaveDataAsJson_FileContainsValidJson()
         {
-            string filePath = $@"{DataSavingService.SaveFilesPath}\test.json";
+            string filePath = Path.Combine(DataSavingService.SaveFilesPath, "test.json");
             var obj = new { Name = "Test", Value = 123 };
             using DataSavingService dataSavingService = new();
 
@@ -62,13 +64,14 @@ namespace ChatbotLib.Tests
             Assert.Contains("name", json, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("value", json, StringComparison.OrdinalIgnoreCase);
 
-            File.Delete(filePath);
+            if (File.Exists(filePath))
+                File.Delete(filePath);
         }
 
         [Fact]
         public async Task DataSavingService_LoadDataAsJson_DeserializesCorrectly()
         {
-            string filePath = $@"{DataSavingService.SaveFilesPath}\test.json";
+            string filePath = Path.Combine(DataSavingService.SaveFilesPath, "test.json");
             var testObject = new TestObject { Name = "Example", Value = 42 };
 
             string json = JsonSerializer.Serialize(testObject, _options);
@@ -82,13 +85,14 @@ namespace ChatbotLib.Tests
             Assert.Equal(testObject.Name, result!.Name);
             Assert.Equal(testObject.Value, result.Value);
 
-            File.Delete(filePath);
+            if (File.Exists(filePath))
+                File.Delete(filePath);
         }
 
         [Fact]
         public async Task DataSavingService_LoadDataAsJson_InvalidJson_ThrowsJsonException()
         {
-            string filePath = $@"{DataSavingService.SaveFilesPath}\test.json";
+            string filePath = Path.Combine(DataSavingService.SaveFilesPath, "test.json");
             await File.WriteAllTextAsync(filePath, "{invalid_json:true");
 
             using DataSavingService dataSavingService = new();
@@ -98,13 +102,14 @@ namespace ChatbotLib.Tests
                 await dataSavingService.LoadDataAsJson<TestObject>("test.json");
             });
 
-            File.Delete(filePath);
+            if (File.Exists(filePath))
+                File.Delete(filePath);
         }
 
         [Fact]
         public async Task DataSavingService_SaveAndLoad_LargeData_FileIntegrityPreserved()
         {
-            string filePath = $@"{DataSavingService.SaveFilesPath}\test.bin";
+            string filePath = Path.Combine(DataSavingService.SaveFilesPath, "test.bin");
             byte[] largeData = new byte[1024 * 1024]; // 1 MB
             new Random().NextBytes(largeData);
 
@@ -115,7 +120,8 @@ namespace ChatbotLib.Tests
 
             Assert.Equal(largeData, loadedData);
 
-            File.Delete(filePath);
+            if (File.Exists(filePath))
+                File.Delete(filePath);
         }
 
         [Fact]
@@ -140,6 +146,54 @@ namespace ChatbotLib.Tests
             dataSavingService.Dispose();
 
             Assert.True(true, "Dispose executed without exceptions.");
+        }
+
+        [Fact]
+        public async Task DataSavingService_ConcurrentReadWrite_SemaphoresPreventCorruption()
+        {
+            string filePath = Path.Combine(DataSavingService.SaveFilesPath, "test.json");
+            using DataSavingService dataSavingService = new();
+
+            var initialObject = new TestObject { Name = "Initial", Value = 0 };
+            await dataSavingService.SaveDataAsJson(initialObject, "test.json");
+
+            int parallelCount = 10;
+            await Parallel.ForAsync(0, 10, async (i, token) =>
+            {
+                if (i % 2 == 0)
+                {
+                    var obj = new TestObject { Name = $"Obj_{i}", Value = i };
+                    try
+                    {
+                        await dataSavingService.SaveDataAsJson(obj, "test.json", token);
+                    }
+                    catch (Exception ex)
+                    {
+                        Assert.Fail($"Unexpected exception during concurrent write: {ex.Message}");
+                    }
+                }
+                else
+                {
+                    try
+                    {
+                        _ = await dataSavingService.LoadDataAsJson<TestObject>("test.json", token);
+                    }
+                    catch (Exception ex)
+                    {
+                        Assert.Fail($"Unexpected exception during concurrent read: {ex.Message}");
+                    }
+                }
+            });
+
+            string json = await File.ReadAllTextAsync(filePath);
+            TestObject? result = JsonSerializer.Deserialize<TestObject>(json, _options);
+
+            Assert.NotNull(result);
+            Assert.StartsWith("Obj_", result!.Name); // Последняя запись должна быть корректной
+            Assert.InRange(result.Value, 0, parallelCount - 1);
+
+            if (File.Exists(filePath))
+                File.Delete(filePath);
         }
 
         private class TestObject
