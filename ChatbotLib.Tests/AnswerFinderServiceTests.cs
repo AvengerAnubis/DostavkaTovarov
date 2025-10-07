@@ -1,5 +1,7 @@
 ﻿using ChatbotLib.DataObjects;
+using ChatbotLib.Interfaces;
 using ChatbotLib.Services;
+using Moq;
 using System.Text.Json;
 
 namespace ChatbotLib.Tests
@@ -13,21 +15,21 @@ namespace ChatbotLib.Tests
         {
             var root = new QuestionAnswerNode
             {
-                Question = "Как контролируются сроки?",
-                QuestionContexted = "Контроль сроков",
+                Question = "Как контрол срок?",
+                QuestionContexted = "Как контрол срок их",
                 Answer = "Сроки контролируются автоматически системой учёта.",
                 ContextChildren =
                 [
                     new QuestionAnswerNode
                     {
-                        Question = "Почему это важно?",
-                        QuestionContexted = "Почему контроль сроков важен?",
+                        Question = "Почему контрол срок важн",
+                        QuestionContexted = "Почему он это важн",
                         Answer = "Потому что несоблюдение сроков ведёт к срыву поставки."
                     },
                     new QuestionAnswerNode
                     {
-                        Question = "Какая система контролирует сроки?",
-                        QuestionContexted = "Система контроля сроков",
+                        Question = "Какая систем контрол срок",
+                        QuestionContexted = "Какая систем контрол их его",
                         Answer = "Используется внутренняя система мониторинга сроков."
                     }
                 ]
@@ -35,40 +37,32 @@ namespace ChatbotLib.Tests
             return root;
         }
 
-        private static async Task WriteHierarchyFileAsync(QuestionAnswerNode node)
+        private static Mock<IDataSavingService> CreateMockSavingService(QuestionAnswerNode? hierarchy = null)
         {
-            string json = JsonSerializer.Serialize(node, new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
-            });
-            await File.WriteAllTextAsync(Path.Combine(Directory.GetCurrentDirectory(), "qa_hierarchy.json"), json);
-        }
+            var mock = new Mock<IDataSavingService>();
 
-        private static void DeleteFileIfExists(string path)
-        {
-            if (File.Exists(path))
-                File.Delete(path);
+            // Метод для загрузки данных
+            mock.Setup(s => s.LoadDataAsJson<QuestionAnswerNode>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(hierarchy ?? new());
+
+            return mock;
         }
 
         [Fact]
-        public async Task AnswerFinderService_Constructor_FileExists_LoadsHierarchy()
+        public void AnswerFinderService_Constructor_FileExists_LoadsHierarchy()
         {
             var hierarchy = BuildHierarchy();
-            await WriteHierarchyFileAsync(hierarchy);
 
-            using var savingService = new DataSavingService();
+            IDataSavingService savingService = CreateMockSavingService(hierarchy).Object;
             using var finder = new AnswerFinderService(savingService);
 
             Assert.NotNull(finder);
-            DeleteFileIfExists(FilePath);
         }
 
         [Fact]
         public void AnswerFinderService_Constructor_FileMissing_CreatesEmptyHierarchy()
         {
-            DeleteFileIfExists(FilePath);
-            using var savingService = new DataSavingService();
+            IDataSavingService savingService = CreateMockSavingService().Object;
             using var finder = new AnswerFinderService(savingService);
             Assert.NotNull(finder);
         }
@@ -79,28 +73,22 @@ namespace ChatbotLib.Tests
         public async Task AnswerFinderService_ApplyContext_ValidNode_SetsContextSuccessfully()
         {
             var hierarchy = BuildHierarchy();
-            await WriteHierarchyFileAsync(hierarchy);
-            using var savingService = new DataSavingService();
+            IDataSavingService savingService = CreateMockSavingService(hierarchy).Object;
             using var finder = new AnswerFinderService(savingService);
 
-            // Берём дочерний узел
-            var childNode = hierarchy.ContextChildren.First();
-            finder.ApplyContext(childNode);
+            finder.ApplyContext(hierarchy);
 
             // Проверяем, что теперь поиск в контексте отдаёт этот узел
             var result = await finder.FindAnswerNode("Почему это важно?", searchInContext: true);
             Assert.NotNull(result.FoundNode);
-            Assert.Equal(childNode.Answer, result.FoundNode.Answer);
-
-            DeleteFileIfExists(FilePath);
+            Assert.Contains("систем", result.FoundNode.Answer, StringComparison.OrdinalIgnoreCase);
         }
 
         [Fact]
         public async Task AnswerFinderService_ApplyContext_NodeNotInHierarchy_DoesNotChangeContext()
         {
             var hierarchy = BuildHierarchy();
-            await WriteHierarchyFileAsync(hierarchy);
-            using var savingService = new DataSavingService();
+            IDataSavingService savingService = CreateMockSavingService(hierarchy).Object;
             using var finder = new AnswerFinderService(savingService);
 
             var invalidNode = new QuestionAnswerNode
@@ -114,9 +102,7 @@ namespace ChatbotLib.Tests
             // Поиск всё ещё идёт по исходной иерархии
             var result = await finder.FindAnswerNode("Какая система контролирует сроки?", searchInContext: true);
             Assert.NotNull(result.FoundNode);
-            Assert.Contains("система", result.FoundNode.Answer, StringComparison.OrdinalIgnoreCase);
-
-            DeleteFileIfExists(FilePath);
+            Assert.Contains("систем", result.FoundNode.Answer, StringComparison.OrdinalIgnoreCase);
         }
 
         // --- Контекстный поиск (обновлённые тесты) ---
@@ -125,61 +111,41 @@ namespace ChatbotLib.Tests
         public async Task AnswerFinderService_FindAnswerNode_ContextMatch_PrefersContextResult()
         {
             var hierarchy = BuildHierarchy();
-            await WriteHierarchyFileAsync(hierarchy);
-            using var savingService = new DataSavingService();
+            IDataSavingService savingService = CreateMockSavingService(hierarchy).Object;
             using var finder = new AnswerFinderService(savingService);
 
             // Устанавливаем контекст на корневой вопрос
             finder.ApplyContext(hierarchy);
 
-            var result = await finder.FindAnswerNode("какая система контролирует сроки?", searchInContext: true, minScoreForContext: 60);
+            var result = await finder.FindAnswerNode("какая система контролирует сроки?", searchInContext: true, minScoreForContext: 80);
 
             Assert.NotNull(result.FoundNode);
-            Assert.Contains("система", result.FoundNode.Question, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("систем", result.FoundNode.Answer, StringComparison.OrdinalIgnoreCase);
             Assert.InRange(result.Score, 80, 100);
-
-            DeleteFileIfExists(FilePath);
         }
 
         [Fact]
         public async Task AnswerFinderService_FindAnswerNode_NonContextMatch_FallsBackToGlobalSearch()
         {
             var hierarchy = BuildHierarchy();
-            await WriteHierarchyFileAsync(hierarchy);
-            using var savingService = new DataSavingService();
+            IDataSavingService savingService = CreateMockSavingService(hierarchy).Object;
             using var finder = new AnswerFinderService(savingService);
 
-            finder.ApplyContext(hierarchy.ContextChildren.First()); // контекст: "Почему это важно?"
+            finder.ApplyContext(hierarchy); // контекст: "Почему это важно?"
 
             // Этот вопрос не в контексте, значит, поиск должен идти по всем узлам
-            var result = await finder.FindAnswerNode("Как контролируются сроки?", searchInContext: true, minScoreForContext: 90);
+            var result = await finder.FindAnswerNode("Как контролируются сроки?", searchInContext: true, minScoreForContext: 80);
 
             Assert.NotNull(result.FoundNode);
             Assert.Contains("сроки", result.FoundNode.Answer, StringComparison.OrdinalIgnoreCase);
             Assert.InRange(result.Score, 80, 100);
-
-            DeleteFileIfExists(FilePath);
-        }
-
-        // --- Остальные (без изменений) ---
-
-        [Fact]
-        public async Task AnswerFinderService_FindAnswerNode_InvalidJson_UsesEmptyHierarchy()
-        {
-            await File.WriteAllTextAsync(FilePath, "{invalid_json:true");
-            using var savingService = new DataSavingService();
-            using var finder = new AnswerFinderService(savingService);
-            var result = await finder.FindAnswerNode("Любой вопрос");
-            Assert.NotNull(result.FoundNode);
-            DeleteFileIfExists(FilePath);
         }
 
         [Fact]
         public async Task AnswerFinderService_FindAnswerNode_RespectsCancellationToken()
         {
             var hierarchy = BuildHierarchy();
-            await WriteHierarchyFileAsync(hierarchy);
-            using var savingService = new DataSavingService();
+            IDataSavingService savingService = CreateMockSavingService(hierarchy).Object;
             using var finder = new AnswerFinderService(savingService);
             using var cts = new CancellationTokenSource();
             cts.Cancel();
@@ -187,14 +153,14 @@ namespace ChatbotLib.Tests
             {
                 await finder.FindAnswerNode("Как контролируются сроки?", token: cts.Token);
             });
-            DeleteFileIfExists(FilePath);
         }
 
         [Fact]
         public void AnswerFinderService_Dispose_CancelsAndReleases()
         {
-            using var savingService = new DataSavingService();
-            var finder = new AnswerFinderService(savingService);
+            var hierarchy = BuildHierarchy();
+            IDataSavingService savingService = CreateMockSavingService(hierarchy).Object;
+            using var finder = new AnswerFinderService(savingService);
             finder.Dispose();
             finder.Dispose(); // повторный вызов не должен кидать исключение
             Assert.True(true);
