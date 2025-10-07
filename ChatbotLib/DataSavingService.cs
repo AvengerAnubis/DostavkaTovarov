@@ -37,7 +37,7 @@ namespace ChatbotLib
             await fileLock.WaitAsync(sharedCts.Token);
             try
             {
-                using FileStream file = File.OpenWrite($@"{Assembly.GetExecutingAssembly().Location}\{filename}");
+                using FileStream file = File.OpenWrite($@"{Directory.GetCurrentDirectory()}\{filename}");
 
                 await file.WriteAsync(data, sharedCts.Token);
             }
@@ -70,7 +70,7 @@ namespace ChatbotLib
             await fileLock.WaitAsync(sharedCts.Token);
             try
             {
-                using FileStream file = File.OpenRead($@"{Assembly.GetExecutingAssembly().Location}\{filename}");
+                using FileStream file = File.OpenRead($@"{Directory.GetCurrentDirectory()}\{filename}");
 
                 byte[] data = new byte[file.Length];
                 await file.ReadExactlyAsync(data, sharedCts.Token);
