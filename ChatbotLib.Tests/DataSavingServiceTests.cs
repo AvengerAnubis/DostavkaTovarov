@@ -4,9 +4,9 @@ using System.Text.Json;
 
 namespace ChatbotLib.Tests
 {
-	[Trait("Category", "Modules")]
-	public class DataSavingServiceTests
-	{
+    [Trait("Category", "Modules")]
+    public class DataSavingServiceTests
+    {
         private readonly JsonSerializerOptions _options = new()
         {
             WriteIndented = false,

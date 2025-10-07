@@ -1,9 +1,5 @@
 ﻿using ChatbotLib.DataObjects;
 using ChatbotLib.Interfaces;
-using System.Collections;
-using System.IO.Pipelines;
-using System.Reflection;
-using System.Text;
 using System.Text.Json;
 
 namespace ChatbotLib.Services
@@ -20,11 +16,11 @@ namespace ChatbotLib.Services
                 messages.Dequeue();
             messages.Enqueue(message);
         }
-        public void SendMessage(string author, string message) 
+        public void SendMessage(string author, string message)
             => SendMessage(new() { Author = author, Message = message });
         #endregion
         #region Serialization/Deserialization
-        
+
         protected CancellationTokenSource sharedCts = new();
         public async Task SaveChatHistory(CancellationToken token = default)
         {

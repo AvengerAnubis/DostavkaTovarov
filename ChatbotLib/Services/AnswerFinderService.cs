@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ChatbotLib.DataObjects;
+﻿using ChatbotLib.DataObjects;
 using ChatbotLib.Interfaces;
 using FuzzySharp;
 using FuzzySharp.Extractor;
@@ -15,7 +9,7 @@ namespace ChatbotLib.Services
 {
     public class AnswerFinderService : IDisposable, IAnswerFinderService
     {
-        protected string HierarchyFileName => "qa_hierarchy.json";
+        protected static string HierarchyFileName => "qa_hierarchy.json";
         protected IDataSavingService savingService;
         protected QuestionAnswerNode hierarchyHeadNode;
         protected QuestionAnswerNode currentContext;

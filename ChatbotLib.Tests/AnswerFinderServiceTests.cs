@@ -2,15 +2,12 @@
 using ChatbotLib.Interfaces;
 using ChatbotLib.Services;
 using Moq;
-using System.Text.Json;
 
 namespace ChatbotLib.Tests
 {
     [Trait("Category", "Modules")]
     public class AnswerFinderServiceTests
     {
-        private static string FilePath => Path.Combine(Directory.GetCurrentDirectory(), "qa_hierarchy.json");
-
         private static QuestionAnswerNode BuildHierarchy()
         {
             var root = new QuestionAnswerNode

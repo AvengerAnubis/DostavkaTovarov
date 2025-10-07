@@ -1,9 +1,8 @@
-﻿using System.Text;
-using System.Text.Json;
-using ChatbotLib.DataObjects;
+﻿using ChatbotLib.DataObjects;
 using ChatbotLib.Interfaces;
 using ChatbotLib.Services;
 using Moq;
+using System.Text.Json;
 
 namespace ChatbotLib.Tests
 {
@@ -74,11 +73,11 @@ namespace ChatbotLib.Tests
         public async Task ChatService_LoadFromJson_CallsDataSavingService_AndReplacesMessages()
         {
             var mockSaver = new Mock<IDataSavingService>();
-            var fakeMessages = new Queue<ChatMessage>(new[]
-            {
+            var fakeMessages = new Queue<ChatMessage>(
+            [
                 new ChatMessage { Author = "Alice", Message = "Hi" },
                 new ChatMessage { Author = "Bob", Message = "Hello" }
-            });
+            ]);
 
             mockSaver
                 .Setup(s => s.LoadDataAsJson<Queue<ChatMessage>>("chathistory.json", It.IsAny<CancellationToken>()))
