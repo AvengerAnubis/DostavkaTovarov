@@ -32,6 +32,8 @@ namespace ChatbotLib
             await fileLock.WaitAsync(sharedCts.Token);
             try
             {
+                if (File.Exists(filename))
+                    File.Delete(filename);
                 using FileStream file = File.OpenWrite($@"{SaveFilesPath}\{filename}");
 
                 await file.WriteAsync(data, sharedCts.Token);
