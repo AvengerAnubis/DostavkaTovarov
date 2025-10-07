@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ChatbotLib
 {
     public class DataSavingService : IDisposable
     {
+        public static string SaveFilesPath => Directory.GetCurrentDirectory();
         protected Dictionary<string, SemaphoreSlim> fileLocks = [];
 
         protected CancellationTokenSource sharedCts = new();
@@ -37,7 +32,7 @@ namespace ChatbotLib
             await fileLock.WaitAsync(sharedCts.Token);
             try
             {
-                using FileStream file = File.OpenWrite($@"{Directory.GetCurrentDirectory()}\{filename}");
+                using FileStream file = File.OpenWrite($@"{SaveFilesPath}\{filename}");
 
                 await file.WriteAsync(data, sharedCts.Token);
             }
@@ -70,7 +65,7 @@ namespace ChatbotLib
             await fileLock.WaitAsync(sharedCts.Token);
             try
             {
-                using FileStream file = File.OpenRead($@"{Directory.GetCurrentDirectory()}\{filename}");
+                using FileStream file = File.OpenRead($@"{SaveFilesPath}\{filename}");
 
                 byte[] data = new byte[file.Length];
                 await file.ReadExactlyAsync(data, sharedCts.Token);
@@ -102,6 +97,7 @@ namespace ChatbotLib
         {
             if (!isDisposed)
             {
+                isDisposed = true;
                 if (disposing)
                 {
                     fileLocks.Clear();

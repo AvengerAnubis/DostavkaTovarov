@@ -75,6 +75,7 @@ namespace ChatbotLib
         {
             if (!isDisposed)
             {
+                isDisposed = true;
                 if (disposing)
                 {
                     sharedCts.Cancel();
