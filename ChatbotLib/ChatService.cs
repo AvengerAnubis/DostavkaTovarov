@@ -1,16 +1,23 @@
-﻿using System.IO.Pipelines;
+﻿using System.Collections;
+using System.IO.Pipelines;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
 
 namespace ChatbotLib
 {
-    public class ChatService(DataSavingService savingService) : IDisposable
+    public class ChatService(DataSavingService savingService, int limit = 50) : IDisposable
     {
-        public List<ChatMessage> Messages { get; protected set; } = [];
+        protected Queue<ChatMessage> messages = [];
+        public IEnumerable<ChatMessage> Messages => messages;
 
         #region Отправка сообщений
-        public void SendMessage(ChatMessage message) => Messages.Add(message);
+        public void SendMessage(ChatMessage message)
+        {
+            if (messages.Count >= limit)
+                messages.Dequeue();
+            messages.Enqueue(message);
+        }
         public void SendMessage(string author, string message) 
             => SendMessage(new() { Author = author, Message = message });
         #endregion
@@ -23,7 +30,7 @@ namespace ChatbotLib
 
             try
             {
-                await savingService.SaveDataAsJson(Messages, "chathistory.json", sharedCts.Token);
+                await savingService.SaveDataAsJson(messages, "chathistory.json", sharedCts.Token);
             }
             finally
             {
@@ -36,11 +43,11 @@ namespace ChatbotLib
 
             try
             {
-                var messages = await savingService.LoadDataAsJson<List<ChatMessage>>("chathistory.json", sharedCts.Token);
+                var messages = await savingService.LoadDataAsJson<Queue<ChatMessage>>("chathistory.json", sharedCts.Token);
                 if (messages is not null)
-                    Messages = messages;
+                    this.messages = messages;
                 else
-                    Messages.Clear();
+                    this.messages.Clear();
             }
             catch (Exception ex) when (
                 ex is UnauthorizedAccessException ||
@@ -48,7 +55,7 @@ namespace ChatbotLib
                 ex is JsonException
             )
             {
-                Messages.Clear();
+                messages.Clear();
             }
             finally
             {
@@ -64,7 +71,7 @@ namespace ChatbotLib
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-        protected void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
             if (!isDisposed)
             {
@@ -72,7 +79,7 @@ namespace ChatbotLib
                 {
                     sharedCts.Cancel();
                     sharedCts.Dispose();
-                    Messages.Clear();
+                    messages.Clear();
                 }
             }
         }
