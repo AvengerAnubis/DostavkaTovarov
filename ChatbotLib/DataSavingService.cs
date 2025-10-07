@@ -36,7 +36,7 @@ namespace ChatbotLib
             {
                 if (File.Exists(filename))
                     File.Delete(filename);
-                using FileStream file = File.OpenWrite($@"{SaveFilesPath}\{filename}");
+                using FileStream file = File.OpenWrite(Path.Combine(SaveFilesPath, filename));
 
                 await file.WriteAsync(data, sharedCts.Token);
             }
@@ -71,7 +71,7 @@ namespace ChatbotLib
             await fileLock.WaitAsync(sharedCts.Token);
             try
             {
-                using FileStream file = File.OpenRead($@"{SaveFilesPath}\{filename}");
+                using FileStream file = File.OpenRead(Path.Combine(SaveFilesPath, filename));
 
                 byte[] data = new byte[file.Length];
                 await file.ReadExactlyAsync(data, sharedCts.Token);
