@@ -26,6 +26,7 @@ namespace ChatbotLib
         protected CancellationTokenSource sharedCts = new();
         public async Task SaveToJson(CancellationToken token = default)
         {
+            token.ThrowIfCancellationRequested();
             var registerToken = token.Register(() => sharedCts.Cancel());
 
             try
@@ -39,6 +40,7 @@ namespace ChatbotLib
         }
         public async Task LoadFromJson(CancellationToken token = default)
         {
+            token.ThrowIfCancellationRequested();
             var registerToken = token.Register(() => sharedCts.Cancel());
 
             try

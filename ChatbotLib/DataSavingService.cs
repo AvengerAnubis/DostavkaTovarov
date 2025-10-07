@@ -19,7 +19,9 @@ namespace ChatbotLib
         #region Сохранение
         public async Task SaveData(byte[] data, string filename, CancellationToken token = default)
         {
+            token.ThrowIfCancellationRequested();
             var registerToken = token.Register(() => sharedCts.Cancel());
+
             SemaphoreSlim fileLock;
             if (fileLocks.TryGetValue(filename, out SemaphoreSlim? value))
                 fileLock = value;
@@ -54,7 +56,9 @@ namespace ChatbotLib
         #region Загрузка
         public async Task<byte[]> LoadData(string filename, CancellationToken token = default)
         {
+            token.ThrowIfCancellationRequested();
             var registerToken = token.Register(() => sharedCts.Cancel());
+
             SemaphoreSlim fileLock;
             if (fileLocks.TryGetValue(filename, out SemaphoreSlim? value))
                 fileLock = value;

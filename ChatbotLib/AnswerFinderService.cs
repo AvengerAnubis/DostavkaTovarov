@@ -40,17 +40,27 @@ namespace ChatbotLib
         public async Task<AnswerFinderResult> FindAnswerNode
             (string question, bool searchInContext = true, int minScoreForContext = 80, CancellationToken token = default)
         {
-            question = question.Trim().ToLower();
-            // Первый поиск - в контексте (если набирается достаточный score - возвращаем его)
-            var questions = currentContext.ContextChildren.Select(node => node.QuestionContextedNormalized);
-            var result = await Task.Run(() => FindClosest(question, questions));
-            if (result.Score >= minScoreForContext)
-                return new() { FoundNode = allNodes[result.Index], Score = result.Score };
+            token.ThrowIfCancellationRequested();
+            var registerToken = token.Register(() => sharedCts.Cancel());
 
-            // Второй поиск - вне контекста (возвращаем наибольший score)
-            questions = allNodes.Select(node => node.QuestionNormalized);
-            result = await Task.Run(() => FindClosest(question, questions));
-            return new() { FoundNode = allNodes[result.Index], Score = result.Score };
+            try
+            {
+                question = question.Trim().ToLower();
+                // Первый поиск - в контексте (если набирается достаточный score - возвращаем его)
+                var questions = currentContext.ContextChildren.Select(node => node.QuestionContextedNormalized);
+                var result = await Task.Run(() => FindClosest(question, questions), token);
+                if (result.Score >= minScoreForContext)
+                    return new() { FoundNode = allNodes[result.Index], Score = result.Score };
+
+                // Второй поиск - вне контекста (возвращаем наибольший score)
+                questions = allNodes.Select(node => node.QuestionNormalized);
+                result = await Task.Run(() => FindClosest(question, questions), token);
+                return new() { FoundNode = allNodes[result.Index], Score = result.Score };
+            }
+            finally
+            {
+                registerToken.Unregister();
+            }
         }
 
         #region Методы сравнения строк
