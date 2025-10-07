@@ -4,24 +4,27 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ChatbotLib.DataObjects;
+using ChatbotLib.Interfaces;
 using FuzzySharp;
 using FuzzySharp.Extractor;
 using FuzzySharp.SimilarityRatio;
 using FuzzySharp.SimilarityRatio.Scorer.StrategySensitive;
 
-namespace ChatbotLib
+namespace ChatbotLib.Services
 {
-    public class AnswerFinderService : IDisposable
+    public class AnswerFinderService : IDisposable, IAnswerFinderService
     {
-        protected DataSavingService savingService;
+        protected string HierarchyFileName => "qa_hierarchy.json";
+        protected IDataSavingService savingService;
         protected QuestionAnswerNode hierarchyHeadNode;
         protected QuestionAnswerNode currentContext;
         protected List<QuestionAnswerNode> allNodes = [];
         protected CancellationTokenSource sharedCts = new();
 
-        public AnswerFinderService(DataSavingService savingService)
+        public AnswerFinderService(IDataSavingService savingService)
         {
-            var loadedHierarchy = savingService.LoadDataAsJson<QuestionAnswerNode>("qa_hierarchy.json").Result;
+            var loadedHierarchy = savingService.LoadDataAsJson<QuestionAnswerNode>(HierarchyFileName).Result;
             if (loadedHierarchy is not null)
                 hierarchyHeadNode = loadedHierarchy;
             else
@@ -62,16 +65,21 @@ namespace ChatbotLib
                 registerToken.Unregister();
             }
         }
+        public void ApplyContext(QuestionAnswerNode node)
+        {
+            if (allNodes.Contains(node))
+                currentContext = node;
+        }
 
         #region Методы сравнения строк
         protected static int CheckRation(string s1, string s2)
         {
-            var result = Process.ExtractOne(s1, [s2], s => s, ScorerCache.Get<TokenSetScorer>());
+            var result = Process.ExtractOne(s1, [s2], s => s, ScorerCache.Get<DefaultRatioScorer>());
             return result.Score;
         }
         protected static ExtractedResult<string> FindClosest(string toFind, IEnumerable<string> strings)
         {
-            var result = Process.ExtractOne(toFind, strings, s => s, ScorerCache.Get<TokenSetScorer>());
+            var result = Process.ExtractOne(toFind, strings, s => s, ScorerCache.Get<DefaultRatioScorer>());
             return result;
         }
         #endregion

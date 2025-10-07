@@ -1,9 +1,10 @@
-﻿using System.Text;
+﻿using ChatbotLib.Interfaces;
+using System.Text;
 using System.Text.Json;
 
-namespace ChatbotLib
+namespace ChatbotLib.Services
 {
-    public class DataSavingService : IDisposable
+    public class DataSavingService : IDisposable, IDataSavingService
     {
         public static string SaveFilesPath => Directory.GetCurrentDirectory();
         protected Dictionary<string, SemaphoreSlim> fileLocks = [];
@@ -71,6 +72,11 @@ namespace ChatbotLib
             await fileLock.WaitAsync(sharedCts.Token);
             try
             {
+                if (!File.Exists(Path.Combine(SaveFilesPath, filename)))
+                {
+                    await File.WriteAllBytesAsync(Path.Combine(SaveFilesPath, filename), [], sharedCts.Token);
+                    return [];
+                }
                 using FileStream file = File.OpenRead(Path.Combine(SaveFilesPath, filename));
 
                 byte[] data = new byte[file.Length];
@@ -87,8 +93,17 @@ namespace ChatbotLib
         public async Task<T?> LoadDataAsJson<T>(string filename, CancellationToken token = default)
         {
             byte[] data = await LoadData(filename, token);
+            if (data.Length == 0)
+                return default;
             string json = Encoding.UTF8.GetString(data);
-            return JsonSerializer.Deserialize<T>(json, options);
+            try
+            {
+                return JsonSerializer.Deserialize<T>(json, options);
+            }
+            catch (JsonException)
+            {
+                return default;
+            }
         }
         #endregion
 

@@ -1,12 +1,14 @@
-﻿using System.Collections;
+﻿using ChatbotLib.DataObjects;
+using ChatbotLib.Interfaces;
+using System.Collections;
 using System.IO.Pipelines;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
 
-namespace ChatbotLib
+namespace ChatbotLib.Services
 {
-    public class ChatService(DataSavingService savingService, int limit = 50) : IDisposable
+    public class ChatService(IDataSavingService savingService, int limit = 50) : IDisposable, IChatService
     {
         protected Queue<ChatMessage> messages = [];
         public IEnumerable<ChatMessage> Messages => messages;
@@ -24,7 +26,7 @@ namespace ChatbotLib
         #region Serialization/Deserialization
         
         protected CancellationTokenSource sharedCts = new();
-        public async Task SaveToJson(CancellationToken token = default)
+        public async Task SaveChatHistory(CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
             var registerToken = token.Register(() => sharedCts.Cancel());
@@ -38,7 +40,7 @@ namespace ChatbotLib
                 registerToken.Unregister();
             }
         }
-        public async Task LoadFromJson(CancellationToken token = default)
+        public async Task LoadChatHistory(CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
             var registerToken = token.Register(() => sharedCts.Cancel());
