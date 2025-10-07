@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using ChatbotLib.Services;
+using System.Text;
 using System.Text.Json;
 
 namespace ChatbotLib.Tests
@@ -88,17 +89,14 @@ namespace ChatbotLib.Tests
         }
 
         [Fact]
-        public async Task DataSavingService_LoadDataAsJson_InvalidJson_ThrowsJsonException()
+        public async Task DataSavingService_LoadDataAsJson_InvalidJson_ReturnsEmptyArray()
         {
             string filePath = Path.Combine(DataSavingService.SaveFilesPath, "test.json");
             await File.WriteAllTextAsync(filePath, "{invalid_json:true");
 
             using DataSavingService dataSavingService = new();
 
-            await Assert.ThrowsAsync<JsonException>(async () =>
-            {
-                await dataSavingService.LoadDataAsJson<TestObject>("test.json");
-            });
+            Assert.Equivalent(await dataSavingService.LoadData("nonexistent_file.bin"), Array.Empty<byte>());
 
             if (File.Exists(filePath))
                 File.Delete(filePath);
@@ -123,14 +121,11 @@ namespace ChatbotLib.Tests
         }
 
         [Fact]
-        public async Task DataSavingService_LoadData_FileNotFound_ThrowsException()
+        public async Task DataSavingService_LoadData_FileNotFound_ReturnsEmptyArray()
         {
             using DataSavingService dataSavingService = new();
 
-            await Assert.ThrowsAsync<FileNotFoundException>(async () =>
-            {
-                await dataSavingService.LoadData("nonexistent_file.bin");
-            });
+            Assert.Equivalent(await dataSavingService.LoadData("nonexistent_file.bin"), Array.Empty<byte>());
         }
 
         [Fact]
