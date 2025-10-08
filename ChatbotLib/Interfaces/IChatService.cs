@@ -8,5 +8,7 @@ namespace ChatbotLib.Interfaces
         void SendMessage(string author, string message);
         Task SaveChatHistory(CancellationToken token = default);
         Task LoadChatHistory(CancellationToken token = default);
+
+        IEnumerable<ChatMessage> Messages { get; }
     }
 }
