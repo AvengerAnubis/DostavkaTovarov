@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ChatbotGui.QANEditor.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,9 +21,13 @@ namespace ChatbotGui.QANEditor.Views
     /// </summary>
     public partial class NodeEditorView : Page
     {
-        public NodeEditorView()
+        public NodeEditorViewModel ViewModel { get; }
+
+        public NodeEditorView(NodeEditorViewModel viewModel)
         {
             InitializeComponent();
+            ViewModel = viewModel;
+            DataContext = this;
         }
     }
 }

@@ -19,13 +19,15 @@ namespace ChatbotGui.QANEditor
     public partial class MainWindow : Window
     {
         readonly IServiceProvider serviceProvider;
-        readonly DataViewerView dataViewerView;
+        readonly NodeEditorView nodeEditorView;
 
-        public MainWindow(IServiceProvider serviceProvider, DataViewerView dataViewerView)
+        public MainWindow(IServiceProvider serviceProvider, NodeEditorView nodeEditorView)
         {
             InitializeComponent();
             this.serviceProvider = serviceProvider;
-            this.dataViewerView = dataViewerView;
+            this.nodeEditorView = nodeEditorView;
+
+            this.mainFrame.Navigate(nodeEditorView);
         }
     }
 }

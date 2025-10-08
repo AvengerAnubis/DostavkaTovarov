@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ChatbotGui.QANEditor"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="QANEditor" Height="450" Width="800">
     <Grid>
-        <Frame x:Name="mainFrame"/>
+        <Frame x:Name="mainFrame" NavigationUIVisibility="Hidden"/>
     </Grid>
 </Window>

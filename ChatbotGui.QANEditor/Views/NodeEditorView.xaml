@@ -4,11 +4,84 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:ChatbotGui.QANEditor.Views"
-      mc:Ignorable="d" 
+      xmlns:viewmodels="clr-namespace:ChatbotGui.QANEditor.ViewModels"
+      mc:Ignorable="d"
       d:DesignHeight="450" d:DesignWidth="800"
-      Title="NodeEditorView">
+      Title="NodeEditorView"
+      d:DataContext="{d:DesignInstance Type=local:NodeEditorView}">
 
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
         
+        <!--#region Заполняемые поля-->
+
+        <Label Grid.Column="1" Grid.Row="0" Content="Вопрос без контекста"/>
+        <TextBox Grid.Column="2" Grid.Row="0" 
+                 Text="{Binding Path=ViewModel.SelectedNode.Question, Mode=TwoWay}"/>
+
+        <Label Grid.Column="1" Grid.Row="1" Content="Вопрос в контексте"/>
+        <TextBox Grid.Column="2" Grid.Row="1" 
+                 Text="{Binding Path=ViewModel.SelectedNode.QuestionContexted, Mode=TwoWay}"/>
+        
+        <Label Grid.Column="1" Grid.Row="2" Content="Ответ"/>
+        <TextBox Grid.Column="2" Grid.Row="2" 
+                 Text="{Binding Path=ViewModel.SelectedNode.Answer, Mode=TwoWay}"/>
+
+        <Label Grid.Column="1" Grid.Row="3" Content="Контекстные вопросы"/>
+        <ListView ItemsSource="{Binding Path=ViewModel.SelectedNode.ContextChildren}">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Path=Question}"/>
+                        <Button HorizontalAlignment="Right" Content="Ред." 
+                                Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, 
+                            AncestorType=local:NodeEditorView}, Path=ViewModel.EditContextNodeCommand, Mode=TwoWay}"
+                                CommandParameter="{Binding Path=.}"/>
+                        <Button HorizontalAlignment="Right" Content="Удал." 
+                                Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, 
+                            AncestorType=local:NodeEditorView}, Path=ViewModel.RemoveContextNodeCommand, Mode=TwoWay}"
+                                CommandParameter="{Binding Path=.}"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+        <!--#endregion-->
+
+        <!--#region Кнопки -->
+
+        <Button Grid.Column="2" Grid.Row="4" Content="+" Command="{Binding ViewModel.AddContextNodeCommand}"/>
+        <StackPanel Grid.Column="0" Grid.Row="4" Orientation="Horizontal">
+            <Button Content="Сохранить" Command="{Binding ViewModel.SaveHierarchyToMainCommand}"/>
+            <Button Content="Сохранить как" Command="{Binding ViewModel.SaveHierarchyToUserFileCommand}"/>
+        </StackPanel>
+        
+
+        <!--#endregion -->
+
+        <!--#region Иерархия -->
+
+        <TreeView ItemsSource="{Binding ViewModel.Hierarchy.HeadNode}">
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate 
+                    DataType="viewmodels:QuestionAnswerNodeViewModel"
+                    ItemsSource="{Binding Path=ContextChildren}">
+                    <TextBlock Text="{Binding Path=Question}"/>
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
+
+        <!--#endregion -->
     </Grid>
 </Page>
