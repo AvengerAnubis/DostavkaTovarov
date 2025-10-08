@@ -4,6 +4,7 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+      xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
       xmlns:local="clr-namespace:ChatbotGui.QANEditor.Views"
       xmlns:viewmodels="clr-namespace:ChatbotGui.QANEditor.ViewModels" 
       mc:Ignorable="d"
@@ -24,7 +25,7 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
-        
+
         <!--#region Заполняемые поля-->
 
         <Label Grid.Column="1" Grid.Row="0" Content="Вопрос без контекста"/>
@@ -46,7 +47,7 @@
                 </i:EventTrigger>
             </i:Interaction.Triggers>
         </TextBox>
-        
+
         <Label Grid.Column="1" Grid.Row="2" Content="Ответ"/>
         <TextBox Grid.Column="2" Grid.Row="2" 
                  Text="{Binding Path=ViewModel.SelectedNode.Answer, Mode=TwoWay}">
@@ -58,20 +59,39 @@
         </TextBox>
 
         <Label Grid.Column="1" Grid.Row="3" Content="Контекстные вопросы"/>
-        <ListView Grid.Row="3" Grid.Column="2" ItemsSource="{Binding Path=ViewModel.SelectedNode.ContextChildren}">
+        <ListView Grid.Row="3" Grid.Column="2" ItemsSource="{Binding Path=ViewModel.SelectedNode.ContextChildren}"
+                  md:ListViewAssist.ListViewItemPadding="8">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem" BasedOn="{StaticResource MaterialDesignListBoxItem}">
+                    <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                </Style>
+            </ListView.ItemContainerStyle>
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{Binding Path=Question}"/>
-                        <Button HorizontalAlignment="Right" Content="Ред." 
+                    <Grid HorizontalAlignment="Stretch">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="auto" />
+                            <ColumnDefinition Width="auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding Path=Question}"
+                                   VerticalAlignment="Center" Margin="8"/>
+                        <Button Grid.Column="1"
                                 Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, 
                             AncestorType=local:NodeEditorView}, Path=ViewModel.EditContextNodeCommand}"
-                                CommandParameter="{Binding Path=.}"/>
-                        <Button HorizontalAlignment="Right" Content="Удал." 
+                                CommandParameter="{Binding Path=.}"
+                                Style="{StaticResource FlatButton}">
+                            <md:PackIcon Kind="Edit"/>
+                        </Button>
+                        <Button Grid.Column="2"
                                 Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, 
                             AncestorType=local:NodeEditorView}, Path=ViewModel.RemoveContextNodeCommand}"
-                                CommandParameter="{Binding Path=.}"/>
-                    </StackPanel>
+                                CommandParameter="{Binding Path=.}"
+                                Style="{StaticResource FlatButton}">
+                            <md:PackIcon Kind="Delete"/>
+                        </Button>
+                    </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
@@ -80,7 +100,9 @@
 
         <!--#region Кнопки -->
 
-        <Button Grid.Column="2" Grid.Row="4" Content="+">
+        <Button Grid.Column="2" Grid.Row="4" Content="Добавить контекстный вопрос" 
+                VerticalAlignment="Bottom" HorizontalAlignment="Right"
+                Style="{StaticResource PaintedButton}">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="Click">
                     <i:InvokeCommandAction Command="{Binding ViewModel.Hierarchy.SaveNodesCommand}" />
@@ -89,21 +111,28 @@
             </i:Interaction.Triggers>
         </Button>
         <StackPanel Grid.Column="0" Grid.Row="4" Orientation="Horizontal">
-            <Button Content="Сохранить" Command="{Binding ViewModel.SaveHierarchyToMainCommand}"/>
-            <Button Content="Сохранить как" Command="{Binding ViewModel.SaveHierarchyToUserFileCommand}"/>
+            <Button Content="Сохранить" Command="{Binding ViewModel.SaveHierarchyToMainCommand}"
+                    Style="{StaticResource PaintedButton}"/>
+            <Button Content="Сохранить как" Command="{Binding ViewModel.SaveHierarchyToUserFileCommand}"
+                    Style="{StaticResource PaintedButton}"/>
         </StackPanel>
-        
+
 
         <!--#endregion -->
 
         <!--#region Иерархия -->
-
-        <TreeView ItemsSource="{Binding ViewModel.Hierarchy.HeadNodeCollection}" Grid.RowSpan="4">
-            <TreeView.ItemTemplate>
+        <md:TreeListView ItemsSource="{Binding ViewModel.Hierarchy.HeadNodeCollection}" Grid.RowSpan="4">
+            <md:TreeListView.ItemContainerStyle>
+                <Style TargetType="md:TreeListViewItem" 
+                       BasedOn="{StaticResource MaterialDesignTreeListViewItem}">
+                    <Setter Property="Padding" Value="0"/>
+                </Style>
+            </md:TreeListView.ItemContainerStyle>
+            <md:TreeListView.ItemTemplate>
                 <HierarchicalDataTemplate 
                     DataType="viewmodels:QuestionAnswerNodeViewModel"
                     ItemsSource="{Binding Path=ContextChildren}">
-                    <TextBlock Text="{Binding Path=Question}">
+                    <TextBlock Text="{Binding Path=Question}" Padding="12">
                         <i:Interaction.Triggers>
                             <i:EventTrigger EventName="MouseLeftButtonDown">
                                 <i:InvokeCommandAction 
@@ -115,8 +144,8 @@
                         </i:Interaction.Triggers>
                     </TextBlock>
                 </HierarchicalDataTemplate>
-            </TreeView.ItemTemplate>
-        </TreeView>
+            </md:TreeListView.ItemTemplate>
+        </md:TreeListView>
 
         <!--#endregion -->
     </Grid>

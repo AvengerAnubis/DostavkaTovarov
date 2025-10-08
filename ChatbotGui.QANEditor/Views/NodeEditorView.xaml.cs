@@ -25,10 +25,10 @@ namespace ChatbotGui.QANEditor.Views
 
         public NodeEditorView(NodeEditorViewModel viewModel)
         {
-            InitializeComponent();
             ViewModel = viewModel;
             ViewModel.SelectedNode = ViewModel.Hierarchy.HeadNode;
             DataContext = this;
+            InitializeComponent();
         }
     }
 }
