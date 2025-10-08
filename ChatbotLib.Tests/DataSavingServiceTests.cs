@@ -7,12 +7,7 @@ namespace ChatbotLib.Tests
     [Trait("Category", "Modules")]
     public class DataSavingServiceTests
     {
-        private readonly JsonSerializerOptions _options = new()
-        {
-            WriteIndented = false,
-            IncludeFields = false,
-            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
-        };
+        private JsonSerializerOptions Options => DataSavingService.SerializerOptions;
 
         [Fact]
         public async Task DataSavingService_SaveDataToFile_FileCreated()
@@ -73,7 +68,7 @@ namespace ChatbotLib.Tests
             string filePath = Path.Combine(DataSavingService.SaveFilesPath, "test.json");
             var testObject = new TestObject { Name = "Example", Value = 42 };
 
-            string json = JsonSerializer.Serialize(testObject, _options);
+            string json = JsonSerializer.Serialize(testObject, Options);
             await File.WriteAllTextAsync(filePath, json);
 
             using DataSavingService dataSavingService = new();
@@ -179,7 +174,7 @@ namespace ChatbotLib.Tests
             });
 
             string json = await File.ReadAllTextAsync(filePath);
-            TestObject? result = JsonSerializer.Deserialize<TestObject>(json, _options);
+            TestObject? result = JsonSerializer.Deserialize<TestObject>(json, Options);
 
             Assert.NotNull(result);
             Assert.StartsWith("Obj_", result!.Name); // Последняя запись должна быть корректной
