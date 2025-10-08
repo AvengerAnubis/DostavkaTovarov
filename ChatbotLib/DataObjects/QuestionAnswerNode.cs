@@ -1,11 +1,13 @@
-﻿namespace ChatbotLib.DataObjects
+﻿using System.Text.Json.Serialization;
+
+namespace ChatbotLib.DataObjects
 {
     public class QuestionAnswerNode
     {
         public string Question { get; set; } = string.Empty;
-        public string QuestionNormalized => Question.Trim().ToLower();
+        [JsonIgnore] public string QuestionNormalized => Question.Trim().ToLower();
         public string QuestionContexted { get; set; } = string.Empty;
-        public string QuestionContextedNormalized => QuestionContexted.Trim().ToLower();
+        [JsonIgnore] public string QuestionContextedNormalized => QuestionContexted.Trim().ToLower();
 
         public string Answer { get; set; } = string.Empty;
         public IEnumerable<QuestionAnswerNode> ContextChildren { get; set; } = [];
