@@ -66,9 +66,9 @@ namespace ChatbotGui.QANEditor
                 $"Продолжить выполнение?",
                 "Необработанное исключение", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (choice == MessageBoxResult.Yes)
-                e.Handled = false;
-            else
                 e.Handled = true;
+            else
+                e.Handled = false;
         }
 
         protected override async void OnExit(ExitEventArgs e)

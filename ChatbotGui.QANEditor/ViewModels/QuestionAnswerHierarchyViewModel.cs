@@ -23,6 +23,8 @@ namespace ChatbotGui.QANEditor.ViewModels
 
         [ObservableProperty]
         protected QuestionAnswerNodeViewModel headNode;
+        [ObservableProperty]
+        protected ObservableCollection<QuestionAnswerNodeViewModel> headNodeCollection = [];
 
         [ObservableProperty]
         protected ObservableCollection<QuestionAnswerNodeViewModel> allNodes = [];
@@ -32,13 +34,14 @@ namespace ChatbotGui.QANEditor.ViewModels
             QuestionAnswerNodeViewModel headNodeViewModel)
         {
             this.dataSavingService = dataSavingService;
-            this.headNode = headNodeViewModel;
+            HeadNode = headNodeViewModel;
 
             var headNode = dataSavingService.LoadDataAsJson<QuestionAnswerNode>(FileName).Result;
             if (headNode != null)
-                this.headNode.SetModel(headNode);
+                HeadNode.SetModel(headNode);
+            HeadNodeCollection.Add(HeadNode);
 
-            AddNodeToAllNodes(this.headNode);
+            AddNodeToAllNodes(HeadNode);
         }
 
         protected void AddNodeToAllNodes(QuestionAnswerNodeViewModel node)
@@ -46,6 +49,8 @@ namespace ChatbotGui.QANEditor.ViewModels
             AllNodes.Add(node);
             foreach (QuestionAnswerNodeViewModel subNode in node.ContextChildren)
                 AddNodeToAllNodes(subNode);
+            HeadNodeCollection.Clear();
+            HeadNodeCollection.Add(HeadNode);
         }
 
         [RelayCommand]

@@ -1,8 +1,10 @@
 ﻿using ChatbotLib.DataObjects;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations;
 using System.Configuration;
 using System.Linq;
 using System.Text;
@@ -12,18 +14,27 @@ namespace ChatbotGui.QANEditor.ViewModels
 {
     public partial class QuestionAnswerNodeViewModel : ObservableValidator
     {
-        [ObservableProperty]
-        protected string question = string.Empty;
-        [ObservableProperty]
-        protected string questionContexted = string.Empty;
-        [ObservableProperty]
-        protected string answer = string.Empty;
+        protected IServiceProvider serviceProvider;
 
-        public ObservableCollection<QuestionAnswerNodeViewModel> ContextChildren { get; } = [];
+        [ObservableProperty]
+        [Required(AllowEmptyStrings = false)]
+        protected string question = "Вопрос";
+        [ObservableProperty]
+        [Required(AllowEmptyStrings = false)]
+        protected string questionContexted = "Вопрос с местоимениями";
+        [ObservableProperty]
+        [Required(AllowEmptyStrings = false)]
+        protected string answer = "Ответ (каждое сообщение бота через знак \";\")";
+        [ObservableProperty]
+        protected ObservableCollection<QuestionAnswerNodeViewModel> contextChildren = [];
 
-        public QuestionAnswerNodeViewModel() { }
-        public QuestionAnswerNodeViewModel(QuestionAnswerNode node)
+        public QuestionAnswerNodeViewModel(IServiceProvider serviceProvider)
         {
+            this.serviceProvider = serviceProvider;
+        }
+        public QuestionAnswerNodeViewModel(IServiceProvider serviceProvider, QuestionAnswerNode node)
+        {
+            this.serviceProvider = serviceProvider;
             SetModel(node);
         }
         public void SetModel(QuestionAnswerNode node)
@@ -33,7 +44,11 @@ namespace ChatbotGui.QANEditor.ViewModels
             Answer = node.Answer;
             ContextChildren.Clear();
             foreach (var child in node.ContextChildren)
-                ContextChildren.Add(new(child));
+            {
+                var nodeViewModel = serviceProvider.GetRequiredService<QuestionAnswerNodeViewModel>();
+                nodeViewModel.SetModel(child);
+                ContextChildren.Add(nodeViewModel);
+            }
         }
         public QuestionAnswerNode GetModel()
         {

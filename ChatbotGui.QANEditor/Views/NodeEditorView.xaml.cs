@@ -27,6 +27,7 @@ namespace ChatbotGui.QANEditor.Views
         {
             InitializeComponent();
             ViewModel = viewModel;
+            ViewModel.SelectedNode = ViewModel.Hierarchy.HeadNode;
             DataContext = this;
         }
     }
