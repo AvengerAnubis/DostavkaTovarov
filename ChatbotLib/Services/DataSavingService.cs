@@ -10,12 +10,13 @@ namespace ChatbotLib.Services
         protected Dictionary<string, SemaphoreSlim> fileLocks = [];
 
         protected CancellationTokenSource sharedCts = new();
-        protected JsonSerializerOptions options = new()
+        protected static readonly JsonSerializerOptions options = new()
         {
             WriteIndented = false,
             IncludeFields = false,
             PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
         };
+        public static JsonSerializerOptions SerializerOptions => options;
 
         #region Сохранение
         public async Task SaveData(byte[] data, string filename, CancellationToken token = default)
