@@ -19,88 +19,93 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="auto" />
+            <RowDefinition Height="64" />
+            <RowDefinition Height="64" />
+            <RowDefinition Height="64" />
+            <RowDefinition Height="64" />
             <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
         <!--#region Заполняемые поля-->
 
-        <Label Grid.Column="1" Grid.Row="0" Content="Вопрос без контекста"/>
+        <TextBlock Grid.Column="1" Grid.Row="0" Text="Вопрос без контекста"/>
         <TextBox Grid.Column="2" Grid.Row="0" 
                  Text="{Binding Path=ViewModel.SelectedNode.Question, Mode=TwoWay}">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="LostFocus">
-                    <i:InvokeCommandAction Command="{Binding ViewModel.Hierarchy.SaveNodesCommand}"/>
+                    <i:InvokeCommandAction Command="{Binding ViewModel.SaveNodeCommand}"/>
                 </i:EventTrigger>
             </i:Interaction.Triggers>
         </TextBox>
 
-        <Label Grid.Column="1" Grid.Row="1" Content="Вопрос в контексте"/>
+        <TextBlock Grid.Column="1" Grid.Row="1" Text="Вопрос в контексте"/>
         <TextBox Grid.Column="2" Grid.Row="1" 
                  Text="{Binding Path=ViewModel.SelectedNode.QuestionContexted, Mode=TwoWay}">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="LostFocus">
-                    <i:InvokeCommandAction Command="{Binding ViewModel.Hierarchy.SaveNodesCommand}"/>
+                    <i:InvokeCommandAction Command="{Binding ViewModel.SaveNodeCommand}"/>
                 </i:EventTrigger>
             </i:Interaction.Triggers>
         </TextBox>
 
-        <Label Grid.Column="1" Grid.Row="2" Content="Ответ"/>
+        <TextBlock Grid.Column="1" Grid.Row="2" Text="Ответ"/>
         <TextBox Grid.Column="2" Grid.Row="2" 
                  Text="{Binding Path=ViewModel.SelectedNode.Answer, Mode=TwoWay}">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="LostFocus">
-                    <i:InvokeCommandAction Command="{Binding ViewModel.Hierarchy.SaveNodesCommand}"/>
+                    <i:InvokeCommandAction Command="{Binding ViewModel.SaveNodeCommand}"/>
                 </i:EventTrigger>
             </i:Interaction.Triggers>
         </TextBox>
 
-        <Label Grid.Column="1" Grid.Row="3" Content="Контекстные вопросы"/>
-        <ListView Grid.Row="3" Grid.Column="2" ItemsSource="{Binding Path=ViewModel.SelectedNode.ContextChildren}"
-                  md:ListViewAssist.ListViewItemPadding="8">
-            <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem" BasedOn="{StaticResource MaterialDesignListBoxItem}">
-                    <Setter Property="HorizontalAlignment" Value="Stretch"/>
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                </Style>
-            </ListView.ItemContainerStyle>
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <Grid HorizontalAlignment="Stretch">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="auto" />
-                            <ColumnDefinition Width="auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="{Binding Path=Question}"
-                                   VerticalAlignment="Center" Margin="8"/>
-                        <Button Grid.Column="1"
-                                Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, 
-                            AncestorType=local:NodeEditorView}, Path=ViewModel.EditContextNodeCommand}"
-                                CommandParameter="{Binding Path=.}"
-                                Style="{StaticResource FlatButton}">
-                            <md:PackIcon Kind="Edit"/>
-                        </Button>
-                        <Button Grid.Column="2"
-                                Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, 
-                            AncestorType=local:NodeEditorView}, Path=ViewModel.RemoveContextNodeCommand}"
-                                CommandParameter="{Binding Path=.}"
-                                Style="{StaticResource FlatButton}">
-                            <md:PackIcon Kind="Delete"/>
-                        </Button>
-                    </Grid>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+        <TextBlock Grid.Column="1" Grid.Row="3" Text="Контекстные вопросы"/>
+        <md:Card Grid.Row="3" Grid.Column="2" Grid.RowSpan="2">
+            <ListView Grid.Row="3" Grid.Column="2" Grid.RowSpan="2" 
+                      ItemsSource="{Binding Path=ViewModel.SelectedNode.ContextChildren}"
+                      md:ListViewAssist.ListViewItemPadding="8">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem" BasedOn="{StaticResource MaterialDesignListBoxItem}">
+                        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    </Style>
+                </ListView.ItemContainerStyle>
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid HorizontalAlignment="Stretch">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="auto" />
+                                <ColumnDefinition Width="auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{Binding Path=Question}"
+                           VerticalAlignment="Center" Margin="8"/>
+                            <Button Grid.Column="1"
+                        Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, 
+                    AncestorType=local:NodeEditorView}, Path=ViewModel.EditContextNodeCommand}"
+                        CommandParameter="{Binding Path=.}"
+                        Style="{StaticResource FlatButton}">
+                                <md:PackIcon Kind="Edit"/>
+                            </Button>
+                            <Button Grid.Column="2"
+                        Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, 
+                    AncestorType=local:NodeEditorView}, Path=ViewModel.RemoveContextNodeCommand}"
+                        CommandParameter="{Binding Path=.}"
+                        Style="{StaticResource FlatButton}">
+                                <md:PackIcon Kind="Delete"/>
+                            </Button>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </md:Card>
+        
 
         <!--#endregion-->
 
         <!--#region Кнопки -->
 
-        <Button Grid.Column="2" Grid.Row="4" Content="Добавить контекстный вопрос" 
+        <Button Grid.Column="2" Grid.Row="5" Content="Добавить контекстный вопрос" 
                 VerticalAlignment="Bottom" HorizontalAlignment="Right"
                 Style="{StaticResource PaintedButton}">
             <i:Interaction.Triggers>
@@ -110,7 +115,7 @@
                 </i:EventTrigger>
             </i:Interaction.Triggers>
         </Button>
-        <StackPanel Grid.Column="0" Grid.Row="4" Orientation="Horizontal">
+        <StackPanel Grid.Column="0" Grid.Row="5" Orientation="Horizontal">
             <Button Content="Сохранить" Command="{Binding ViewModel.SaveHierarchyToMainCommand}"
                     Style="{StaticResource PaintedButton}"/>
             <Button Content="Сохранить как" Command="{Binding ViewModel.SaveHierarchyToUserFileCommand}"
@@ -121,7 +126,7 @@
         <!--#endregion -->
 
         <!--#region Иерархия -->
-        <md:TreeListView ItemsSource="{Binding ViewModel.Hierarchy.HeadNodeCollection}" Grid.RowSpan="4">
+        <md:TreeListView ItemsSource="{Binding ViewModel.Hierarchy.HeadNodeCollection}" Grid.RowSpan="5">
             <md:TreeListView.ItemContainerStyle>
                 <Style TargetType="md:TreeListViewItem" 
                        BasedOn="{StaticResource MaterialDesignTreeListViewItem}">
@@ -132,7 +137,7 @@
                 <HierarchicalDataTemplate 
                     DataType="viewmodels:QuestionAnswerNodeViewModel"
                     ItemsSource="{Binding Path=ContextChildren}">
-                    <TextBlock Text="{Binding Path=Question}" Padding="12">
+                    <TextBlock Text="{Binding Path=Question}" Padding="12" Margin="0">
                         <i:Interaction.Triggers>
                             <i:EventTrigger EventName="MouseLeftButtonDown">
                                 <i:InvokeCommandAction 

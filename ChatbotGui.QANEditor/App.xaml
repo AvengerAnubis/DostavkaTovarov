@@ -9,25 +9,33 @@
                 <md:BundledTheme BaseTheme="Dark" PrimaryColor="DeepPurple" SecondaryColor="Lime" />
 
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.DeepPurple.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Secondary/MaterialDesignColor.Lime.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <Style TargetType="TextBox" 
                    BasedOn="{StaticResource MaterialDesignOutlinedTextBox}">
                 <Setter Property="Margin" Value="8"/>
                 <Setter Property="Padding" Value="12"/>
-            </Style>
-            <Style TargetType="Label" 
-                   BasedOn="{StaticResource MaterialDesignLabel}">
-                <Setter Property="Margin" Value="8"/>
+                <Setter Property="Foreground" Value="{StaticResource MaterialDesign.Brush.Primary.Foreground}"/>
             </Style>
             <Style TargetType="TextBlock" 
-                   BasedOn="{StaticResource MaterialDesignTextBlock}">
-                <Setter Property="Margin" Value="0"/>
+                   BasedOn="{StaticResource MaterialDesignLabelLargeTextBlock}">
+                <Setter Property="Margin" Value="8"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Foreground" Value="{StaticResource MaterialDesign.Brush.Primary.Foreground}"/>
+            </Style>
+            <Style TargetType="md:Card"
+                   BasedOn="{StaticResource MaterialDesignOutlinedCard}">
+                <Setter Property="Background" Value="{StaticResource MaterialDesign.Brush.Background}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource MaterialDesign.Brush.Foreground}"/>
+                <Setter Property="Margin" Value="8"/>
             </Style>
             <Style TargetType="Button" 
                    x:Key="PaintedButton"
                    BasedOn="{StaticResource MaterialDesignRaisedButton}">
                 <Setter Property="Margin" Value="8"/>
+                <Setter Property="Height" Value="42"/>
             </Style>
             <Style TargetType="Button" 
                    x:Key="FlatButton"

@@ -16,6 +16,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace ChatbotGui.QANEditor.ViewModels
 {
@@ -34,7 +35,10 @@ namespace ChatbotGui.QANEditor.ViewModels
 
         [RelayCommand]
         protected void SelectNode(QuestionAnswerNodeViewModel node)
-            => SelectedNode = node;
+        {
+            messeger.Send<NodeChangedMessage>(new(SelectedNode));
+            SelectedNode = node;
+        }
 
         [RelayCommand]
         protected void SaveNode()

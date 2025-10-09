@@ -63,6 +63,8 @@ namespace ChatbotGui.QANEditor.ViewModels
         {
             AllNodes.Clear();
             AddNodeToAllNodes(HeadNode);
+            HeadNodeCollection.Clear();
+            HeadNodeCollection.Add(HeadNode);
         }
     }
 }
