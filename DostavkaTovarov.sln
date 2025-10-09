@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatbotLib.Tests", "Chatbot
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatbotGui.QANEditor", "ChatbotGui.QANEditor\ChatbotGui.QANEditor.csproj", "{BFE1F7F2-0438-446B-BAB3-B2E743D7AAB3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatbotGui.Chat", "ChatbotGui.Chat\ChatbotGui.Chat.csproj", "{534EADDE-7E40-4392-B0A4-089C3D13AC24}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,6 +31,10 @@ Global
 		{BFE1F7F2-0438-446B-BAB3-B2E743D7AAB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BFE1F7F2-0438-446B-BAB3-B2E743D7AAB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BFE1F7F2-0438-446B-BAB3-B2E743D7AAB3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{534EADDE-7E40-4392-B0A4-089C3D13AC24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{534EADDE-7E40-4392-B0A4-089C3D13AC24}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{534EADDE-7E40-4392-B0A4-089C3D13AC24}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{534EADDE-7E40-4392-B0A4-089C3D13AC24}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
