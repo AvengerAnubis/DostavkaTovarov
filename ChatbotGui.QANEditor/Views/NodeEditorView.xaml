@@ -8,15 +8,14 @@
       xmlns:local="clr-namespace:ChatbotGui.QANEditor.Views"
       xmlns:viewmodels="clr-namespace:ChatbotGui.QANEditor.ViewModels" 
       mc:Ignorable="d"
-      d:DesignHeight="450" d:DesignWidth="800"
+      d:DesignHeight="600" d:DesignWidth="800"
       Title="NodeEditorView"
       d:DataContext="{d:DesignInstance Type=local:NodeEditorView}">
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="auto" />
-            <ColumnDefinition Width="auto" />
-            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="2*" />
+            <ColumnDefinition Width="5*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" MinHeight="64" />
@@ -32,7 +31,7 @@
         <TextBox md:TextFieldAssist.TextBoxIsMultiLine="True"
                  md:HintAssist.Hint="Вопрос без контекста"
                  md:HintAssist.IsFloating="True"
-                 Grid.Column="2" Grid.Row="0" 
+                 Grid.Column="1" Grid.Row="0" 
                  TextWrapping="Wrap"
                  Text="{Binding Path=ViewModel.SelectedNode.Question, Mode=TwoWay}">
             <i:Interaction.Triggers>
@@ -45,7 +44,7 @@
         <TextBox md:TextFieldAssist.TextBoxIsMultiLine="True"
                  md:HintAssist.Hint="Вопрос с контекстом"
                  md:HintAssist.IsFloating="True"
-                 Grid.Column="2" Grid.Row="1" 
+                 Grid.Column="1" Grid.Row="1" 
                  TextWrapping="Wrap"
                  Text="{Binding Path=ViewModel.SelectedNode.QuestionContexted, Mode=TwoWay}">
             <i:Interaction.Triggers>
@@ -59,7 +58,7 @@
                  md:HintAssist.Hint="Ответ"
                  md:HintAssist.IsFloating="True"
                  TextWrapping="Wrap"
-                  Grid.Column="2" Grid.Row="2" 
+                  Grid.Column="1" Grid.Row="2" 
                  Text="{Binding Path=ViewModel.SelectedNode.Answer, Mode=TwoWay}">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="LostFocus">
@@ -68,9 +67,9 @@
             </i:Interaction.Triggers>
         </TextBox>
 
-        <TextBlock Grid.Column="2" Grid.Row="3" Text="Контекстные вопросы"/>
-        <md:Card Grid.Row="4" Grid.Column="2">
-            <ListView Grid.Row="3" Grid.Column="2" Grid.RowSpan="2" 
+        <TextBlock Grid.Column="1" Grid.Row="3" Text="Контекстные вопросы"/>
+        <md:Card Grid.Row="4" Grid.Column="1">
+            <ListView Grid.Row="3" Grid.Column="1" Grid.RowSpan="2" 
                       md:HintAssist.Hint="Контекстные вопросы"
                       md:HintAssist.IsFloating="True"
                       ItemsSource="{Binding Path=ViewModel.SelectedNode.ContextChildren}"
@@ -116,7 +115,7 @@
 
         <!--#region Кнопки -->
 
-        <Button Grid.Column="2" Grid.Row="5" Content="Добавить контекстный вопрос" 
+        <Button Grid.Column="1" Grid.Row="5" Content="Добавить контекстный вопрос" 
                 VerticalAlignment="Bottom" HorizontalAlignment="Right"
                 Style="{StaticResource PaintedButton}">
             <i:Interaction.Triggers>
@@ -137,7 +136,7 @@
         <!--#endregion -->
 
         <!--#region Иерархия -->
-        <md:TreeListView ItemsSource="{Binding ViewModel.Hierarchy.HeadNodeCollection}" Grid.RowSpan="5">
+        <md:TreeListView ItemsSource="{Binding ViewModel.Hierarchy.HeadNodeCollection}" Grid.RowSpan="5" >
             <md:TreeListView.ItemContainerStyle>
                 <Style TargetType="md:TreeListViewItem" 
                        BasedOn="{StaticResource MaterialDesignTreeListViewItem}">
