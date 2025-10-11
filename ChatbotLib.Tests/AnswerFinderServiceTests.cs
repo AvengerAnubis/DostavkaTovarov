@@ -78,7 +78,7 @@ namespace ChatbotLib.Tests
             // Проверяем, что теперь поиск в контексте отдаёт этот узел
             var result = await finder.FindAnswerNode("Почему это важно?", searchInContext: true);
             Assert.NotNull(result.FoundNode);
-            Assert.Contains("систем", result.FoundNode.Answer, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("срок", result.FoundNode.Answer, StringComparison.OrdinalIgnoreCase);
         }
 
         [Fact]
