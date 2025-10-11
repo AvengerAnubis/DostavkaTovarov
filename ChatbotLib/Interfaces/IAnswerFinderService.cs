@@ -8,6 +8,6 @@ namespace ChatbotLib.Interfaces
             (string question, bool searchInContext = true,
             int minScoreForContext = 80, CancellationToken token = default);
         void ApplyContext(QuestionAnswerNode node);
-
+        IEnumerable<string> GetContextQuestions();
     }
 }
