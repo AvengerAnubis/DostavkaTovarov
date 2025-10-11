@@ -37,7 +37,12 @@
 
   <ItemGroup>
     <Folder Include="Models\" />
-    <Folder Include="Classes\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="qa_main.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -8,7 +8,11 @@
         mc:Ignorable="d"
         Title="ChatBot" MinHeight="600" MinWidth="800">
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
         <ui:TitleBar Title="ChatBot"/>
-        <Frame x:Name="mainFrame" NavigationUIVisibility="Hidden"/>
+        <Frame Grid.Row="1" x:Name="mainFrame" NavigationUIVisibility="Hidden"/>
     </Grid>
 </ui:FluentWindow>

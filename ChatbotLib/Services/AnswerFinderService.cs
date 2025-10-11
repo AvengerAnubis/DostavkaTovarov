@@ -9,7 +9,7 @@ namespace ChatbotLib.Services
 {
     public class AnswerFinderService : IDisposable, IAnswerFinderService
     {
-        protected static string HierarchyFileName => "qa_hierarchy.json";
+        protected static string HierarchyFileName => "qa_main.json";
         protected IDataSavingService savingService;
         protected QuestionAnswerNode hierarchyHeadNode;
         protected QuestionAnswerNode currentContext;
@@ -46,17 +46,32 @@ namespace ChatbotLib.Services
                 // Первый поиск - в контексте (если набирается достаточный score - возвращаем его)
                 var questions = currentContext.ContextChildren.Select(node => node.QuestionContextedNormalized);
                 var result = await Task.Run(() => FindClosest(question, questions), token);
-                if (result.Score >= minScoreForContext)
-                    return new() { FoundNode = allNodes[result.Index], Score = result.Score };
+                if (result is not null && result.Score >= minScoreForContext)
+                    return ResultFindedActions(currentContext.ContextChildren.ToList()[result.Index], result.Score);
 
                 // Второй поиск - вне контекста (возвращаем наибольший score)
                 questions = allNodes.Select(node => node.QuestionNormalized);
                 result = await Task.Run(() => FindClosest(question, questions), token);
-                return new() { FoundNode = allNodes[result.Index], Score = result.Score };
+                if (result is not null)
+                    return ResultFindedActions(allNodes[result.Index], result.Score);
+
+                return new();
             }
             finally
             {
                 registerToken.Unregister();
+            }
+
+            // todo: сделать нормально
+            AnswerFinderResult ResultFindedActions(QuestionAnswerNode node, int score)
+            {
+                AnswerFinderResult resultObject = new()
+                {
+                    FoundNode = node,
+                    Score = score
+                };
+                ApplyContext(node);
+                return resultObject;
             }
         }
         public void ApplyContext(QuestionAnswerNode node)
@@ -64,6 +79,8 @@ namespace ChatbotLib.Services
             if (allNodes.Contains(node))
                 currentContext = node;
         }
+        public IEnumerable<string> GetContextQuestions()
+            => currentContext.ContextChildren.Select(child => child.QuestionContexted);
 
         #region Методы сравнения строк
         protected static int CheckRation(string s1, string s2)

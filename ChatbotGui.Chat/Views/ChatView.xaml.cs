@@ -21,11 +21,12 @@ namespace ChatbotGui.Chat.Views
     /// </summary>
     public partial class ChatView : Page
     {
-        public ChatPageViewModel ViewModel { get; set; }
+        public ChatViewModel ViewModel { get; set; }
 
-        public ChatView(ChatPageViewModel viewModel)
+        public ChatView(ChatViewModel viewModel)
         {
             ViewModel = viewModel;
+            DataContext = this;
             InitializeComponent();
         }
     }

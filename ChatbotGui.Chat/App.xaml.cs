@@ -1,4 +1,5 @@
-﻿using ChatbotGui.Chat.Views;
+﻿using ChatbotGui.Chat.ViewModels;
+using ChatbotGui.Chat.Views;
 using ChatbotLib.Interfaces;
 using ChatbotLib.Services;
 using CommunityToolkit.Mvvm.Messaging;
@@ -30,7 +31,8 @@ namespace ChatbotGui.Chat
                 services.AddSingleton<IMessenger, WeakReferenceMessenger>();
 
                 // ViewModels
-
+                services.AddSingleton<ChatViewModel>();
+                services.AddTransient<ChatMessageViewModel>();
 
                 // Страницы
                 services.AddSingleton<ChatView>();

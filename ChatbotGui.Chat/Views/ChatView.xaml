@@ -6,7 +6,9 @@
       xmlns:local="clr-namespace:ChatbotGui.Chat.Views" 
       xmlns:vm="clr-namespace:ChatbotGui.Chat.ViewModels" 
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-      d:DataContext="{d:DesignInstance Type=vm:ChatPageViewModel}"
+      xmlns:ts="clr-namespace:ChatbotGui.Chat.Classes.TemplateSelectors"
+      
+      d:DataContext="{d:DesignInstance Type=local:ChatView}"
       mc:Ignorable="d" 
       d:DesignHeight="600" d:DesignWidth="800"
       Title="ChatView">
@@ -20,16 +22,82 @@
         <!--#region Верхняя часть - чат -->
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="560" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="320" />
             </Grid.ColumnDefinitions>
 
-            <ui:ListView>
-                
+            <!--#region Чат -->
+            <ui:ListView ItemsSource="{Binding ViewModel.Messages}"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListView.Resources>
+                    <!-- Стиль для сообщений бота -->
+                    <DataTemplate x:Key="BotMessageTemplate">
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Left"
+                                    Margin="16,0,16,0">
+                            <ui:TextBlock Visibility="{Binding IsFirstMessage, 
+                                Converter={StaticResource ResourceKey=VisibilityConverter}}"
+                                          Text="{Binding Author}"
+                                          HorizontalAlignment="Left"/>
+                            <ui:Card>
+                                <ui:TextBlock Text="{Binding Message}"
+                                              TextWrapping="Wrap"/>
+                            </ui:Card>
+                        </StackPanel>
+                    </DataTemplate>
+
+                    <!-- Стиль для сообщений пользователя -->
+                    <DataTemplate x:Key="UserMessageTemplate">
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Right"
+                                    Margin="16,0,16,0">
+                            <ui:TextBlock Visibility="{Binding IsFirstMessage, 
+                                Converter={StaticResource ResourceKey=VisibilityConverter}}"
+                                Text="{Binding Author}"
+                                HorizontalAlignment="Right"/>
+                            <ui:Card>
+                                <ui:TextBlock Text="{Binding Message}"
+                                              TextWrapping="Wrap"/>
+                            </ui:Card>
+                        </StackPanel>
+                    </DataTemplate>
+
+                    <!-- Селектор шаблонов -->
+                    <ts:ChatMessageTemplateSelector 
+                    x:Key="ChatMessageTemplateSelector"
+                    BotTemplate="{StaticResource BotMessageTemplate}"
+                    UserTemplate="{StaticResource UserMessageTemplate}" />
+                    
+                </ListView.Resources>
+
+                <ListView.ItemTemplateSelector>
+                    <StaticResource ResourceKey="ChatMessageTemplateSelector"/>
+                </ListView.ItemTemplateSelector>
             </ui:ListView>
-            <ui:ListView Grid.Column="1">
-                
+            <!--#endregion-->
+            
+            <!--#region Предлагаемые сообщения -->
+            <ui:ListView Grid.Column="1"
+                          ItemsSource="{Binding ViewModel.RecommendedMessages}"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ui:ListView.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel FlowDirection="LeftToRight" />
+                    </ItemsPanelTemplate>
+                </ui:ListView.ItemsPanel>
+                <ui:ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel>
+                            <ui:Button Command="{Binding RelativeSource=
+                                {RelativeSource Mode=FindAncestor,
+                                AncestorType=local:ChatView},
+                                Path=ViewModel.SendMessageFromRecommendedCommand}"
+                                       CommandParameter="{Binding Path=.}">
+                                <ui:TextBlock Text="{Binding Path=.}"/>
+                            </ui:Button>
+                        </StackPanel>
+                    </DataTemplate>
+                </ui:ListView.ItemTemplate>
             </ui:ListView>
+            <!--#endregion-->
         </Grid>
         <!--#endregion-->
         <!--#region Нижняя часть - ввод -->
@@ -38,8 +106,10 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="64" />
             </Grid.ColumnDefinitions>
-            <ui:TextBox Grid.Column="0" Text="Введите текст" />
-            <ui:Button Grid.Column="1" Width="48" Height="48">
+            <ui:TextBox Grid.Column="0" Text="{Binding ViewModel.MessageToSend, Mode=TwoWay}" 
+                        Height="48" Margin="16"/>
+            <ui:Button Grid.Column="1" Width="48" Height="48"
+                       Command="{Binding ViewModel.SendMessageCommand}">
                 <ui:SymbolIcon Symbol="Send24"/>
             </ui:Button>
         </Grid>
