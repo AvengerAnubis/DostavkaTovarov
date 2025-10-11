@@ -16,10 +16,11 @@ using System.Threading.Tasks;
 namespace ChatbotGui.QANEditor.ViewModels
 {
     public partial class QuestionAnswerHierarchyViewModel
-        : ObservableRecipient, IRecipient<NodeChangedMessage>
+        : ObservableRecipient, IRecipient<NodesChangedMessage>, IDisposable
     {
         protected static string FileName => "editor_qa_hierarchy.json";
         protected readonly IDataSavingService dataSavingService;
+        protected readonly IMessenger messenger;
 
         [ObservableProperty]
         protected QuestionAnswerNodeViewModel headNode;
@@ -31,9 +32,12 @@ namespace ChatbotGui.QANEditor.ViewModels
 
         public QuestionAnswerHierarchyViewModel(
             IDataSavingService dataSavingService,
+            IMessenger messenger,
             QuestionAnswerNodeViewModel headNodeViewModel)
         {
             this.dataSavingService = dataSavingService;
+            this.messenger = messenger;
+            this.messenger.Register(this);
             HeadNode = headNodeViewModel;
 
             var headNode = dataSavingService.LoadDataAsJson<QuestionAnswerNode>(FileName).Result;
@@ -53,18 +57,34 @@ namespace ChatbotGui.QANEditor.ViewModels
             HeadNodeCollection.Add(HeadNode);
         }
 
-        [RelayCommand]
-        protected async Task SaveNodes(CancellationToken token)
+        protected async Task SaveNodes(CancellationToken token = default)
         {
             await dataSavingService.SaveDataAsJson(HeadNode.GetModel(), FileName, token);
         }
 
-        public void Receive(NodeChangedMessage message)
+        public void Receive(NodesChangedMessage message)
         {
-            AllNodes.Clear();
-            AddNodeToAllNodes(HeadNode);
-            HeadNodeCollection.Clear();
-            HeadNodeCollection.Add(HeadNode);
+            Task.Run(async () => await SaveNodes());
         }
+
+        #region Disposing
+        protected bool isDisposed = false;
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!isDisposed)
+            {
+                isDisposed = true;
+                if (disposing)
+                {
+                    messenger.Unregister<NodesChangedMessage>(this);
+                }
+            }
+        }
+        #endregion
     }
 }

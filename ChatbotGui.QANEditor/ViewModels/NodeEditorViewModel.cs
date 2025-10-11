@@ -36,22 +36,29 @@ namespace ChatbotGui.QANEditor.ViewModels
         [RelayCommand]
         protected void SelectNode(QuestionAnswerNodeViewModel node)
         {
-            messeger.Send<NodeChangedMessage>(new(SelectedNode));
+            messeger.Send<NodesChangedMessage>(new());
             SelectedNode = node;
         }
 
         [RelayCommand]
         protected void SaveNode()
-            => messeger.Send<NodeChangedMessage>(new(SelectedNode));
+            => messeger.Send<NodesChangedMessage>(new());
 
         // ContextChildren
         [RelayCommand]
         protected void AddContextNode()
-            => SelectedNode.ContextChildren.Add(serviceProvider.GetRequiredService<QuestionAnswerNodeViewModel>());
+        {
+            QuestionAnswerNodeViewModel node = serviceProvider.GetRequiredService<QuestionAnswerNodeViewModel>();
+            SelectedNode.ContextChildren.Add(node);
+            messeger.Send<NodesChangedMessage>(new());
+        }
 
         [RelayCommand]
-        protected void RemoveContextNode(QuestionAnswerNodeViewModel node) 
-            => SelectedNode.ContextChildren.Remove(node);
+        protected void RemoveContextNode(QuestionAnswerNodeViewModel node)
+        {
+            SelectedNode.ContextChildren.Remove(node);
+            messeger.Send<NodesChangedMessage>(new());
+        }
 
         [RelayCommand]
         protected void EditContextNode(QuestionAnswerNodeViewModel node)

@@ -9,8 +9,7 @@ using System.Threading.Tasks;
 
 namespace ChatbotGui.QANEditor.Classes.Messages
 {
-    public class NodeChangedMessage(QuestionAnswerNodeViewModel value) 
-        : ValueChangedMessage<QuestionAnswerNodeViewModel>(value)
+    public class NodesChangedMessage
     {
     }
 }

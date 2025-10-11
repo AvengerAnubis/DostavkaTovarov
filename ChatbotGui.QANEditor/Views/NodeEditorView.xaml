@@ -117,13 +117,8 @@
 
         <Button Grid.Column="1" Grid.Row="5" Content="Добавить контекстный вопрос" 
                 VerticalAlignment="Bottom" HorizontalAlignment="Right"
-                Style="{StaticResource PaintedButton}">
-            <i:Interaction.Triggers>
-                <i:EventTrigger EventName="Click">
-                    <i:InvokeCommandAction Command="{Binding ViewModel.Hierarchy.SaveNodesCommand}" />
-                    <i:InvokeCommandAction Command="{Binding ViewModel.AddContextNodeCommand}" />
-                </i:EventTrigger>
-            </i:Interaction.Triggers>
+                Style="{StaticResource PaintedButton}"
+                Command="{Binding ViewModel.AddContextNodeCommand}">
         </Button>
         <StackPanel Grid.Column="0" Grid.Row="5" Orientation="Horizontal">
             <Button Content="Сохранить" Command="{Binding ViewModel.SaveHierarchyToMainCommand}"
