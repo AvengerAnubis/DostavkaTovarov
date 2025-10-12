@@ -1,14 +1,11 @@
-﻿using System.Configuration;
-using System.Data;
-using System.Windows;
-using ChatbotGui.QANEditor.Classes.Messages;
-using ChatbotGui.QANEditor.ViewModels;
+﻿using ChatbotGui.QANEditor.ViewModels;
 using ChatbotGui.QANEditor.Views;
 using ChatbotLib.Interfaces;
 using ChatbotLib.Services;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Windows;
 
 namespace ChatbotGui.QANEditor
 {

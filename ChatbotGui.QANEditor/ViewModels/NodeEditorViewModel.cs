@@ -1,22 +1,14 @@
 ﻿using ChatbotGui.QANEditor.Classes.Messages;
-using ChatbotLib.DataObjects;
 using ChatbotLib.Interfaces;
 using ChatbotLib.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Microsoft.Win32;
-using System;
-using System.CodeDom;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
-using System.Windows.Input;
 
 namespace ChatbotGui.QANEditor.ViewModels
 {

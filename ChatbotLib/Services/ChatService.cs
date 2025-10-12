@@ -8,7 +8,7 @@ namespace ChatbotLib.Services
     {
         protected Queue<ChatMessage> messages = [];
         public IEnumerable<ChatMessage> Messages => messages;
-        
+
         #region Отправка сообщений
         public void SendMessage(ChatMessage message)
         {
