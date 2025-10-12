@@ -1,15 +1,16 @@
 ﻿using ChatbotLib.Interfaces;
+using System.Collections.Concurrent;
 using System.Text;
 using System.Text.Json;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ChatbotLib.Services
 {
     public class DataSavingService : IDisposable, IDataSavingService
     {
         public static string SaveFilesPath => Directory.GetCurrentDirectory();
-        protected Dictionary<string, SemaphoreSlim> fileLocks = [];
+        protected ConcurrentDictionary<string, SemaphoreSlim> fileLocks = [];
 
-        protected CancellationTokenSource sharedCts = new();
         protected static readonly JsonSerializerOptions options = new()
         {
             WriteIndented = false,
@@ -18,78 +19,58 @@ namespace ChatbotLib.Services
         };
         public static JsonSerializerOptions SerializerOptions => options;
 
+        protected async Task<T> LockFileAndExecute<T>(
+            string filename, Func<Task<T>> action, CancellationToken token = default)
+        {
+            var fileLock = fileLocks.GetOrAdd(filename, _ => new SemaphoreSlim(1, 1));
+            await fileLock.WaitAsync(token);
+
+            try
+            {
+                return await action();
+            }
+            finally
+            {
+                fileLock.Release();
+            }
+        }
+
         #region Сохранение
         public async Task SaveData(byte[] data, string filename, CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
-            var registerToken = token.Register(() => sharedCts.Cancel());
 
-            SemaphoreSlim fileLock;
-            if (fileLocks.TryGetValue(filename, out SemaphoreSlim? value))
-                fileLock = value;
-            else
+            await LockFileAndExecute(filename, async () =>
             {
-                fileLock = new SemaphoreSlim(1, 1);
-                fileLocks.Add(filename, fileLock);
-            }
+                string fullFilepath = Path.Combine(SaveFilesPath, filename);
+                using FileStream file = new(fullFilepath, FileMode.Create, FileAccess.Write, FileShare.None);
 
-            await fileLock.WaitAsync(sharedCts.Token);
-            try
-            {
-                if (File.Exists(filename))
-                    File.Delete(filename);
-                using FileStream file = File.OpenWrite(Path.Combine(SaveFilesPath, filename));
-
-                await file.WriteAsync(data, sharedCts.Token);
-            }
-            finally
-            {
-                registerToken.Unregister();
-                fileLock.Release();
-            }
+                await file.WriteAsync(data, token);
+                return (object?)null;
+            }, token);
         }
         public async Task SaveDataAsJson(object obj, string filename, CancellationToken token = default)
         {
             string json = JsonSerializer.Serialize(obj, options);
             byte[] data = Encoding.UTF8.GetBytes(json);
-            await SaveData(data, filename, sharedCts.Token);
+            await SaveData(data, filename, token);
         }
         #endregion
         #region Загрузка
         public async Task<byte[]> LoadData(string filename, CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
-            var registerToken = token.Register(() => sharedCts.Cancel());
 
-            SemaphoreSlim fileLock;
-            if (fileLocks.TryGetValue(filename, out SemaphoreSlim? value))
-                fileLock = value;
-            else
+            return await LockFileAndExecute(filename, async () =>
             {
-                fileLock = new SemaphoreSlim(1, 1);
-                fileLocks.Add(filename, fileLock);
-            }
-
-            await fileLock.WaitAsync(sharedCts.Token);
-            try
-            {
-                if (!File.Exists(Path.Combine(SaveFilesPath, filename)))
-                {
-                    await File.WriteAllBytesAsync(Path.Combine(SaveFilesPath, filename), [], sharedCts.Token);
-                    return [];
-                }
-                using FileStream file = File.OpenRead(Path.Combine(SaveFilesPath, filename));
+                string fullFilepath = Path.Combine(SaveFilesPath, filename);
+                using FileStream file = new(fullFilepath, FileMode.OpenOrCreate, FileAccess.Read, FileShare.None);
 
                 byte[] data = new byte[file.Length];
-                await file.ReadExactlyAsync(data, sharedCts.Token);
+                await file.ReadExactlyAsync(data, token);
 
                 return data;
-            }
-            finally
-            {
-                registerToken.Unregister();
-                fileLock.Release();
-            }
+            }, token);
         }
         public async Task<T?> LoadDataAsJson<T>(string filename, CancellationToken token = default)
         {
@@ -122,9 +103,10 @@ namespace ChatbotLib.Services
                 isDisposed = true;
                 if (disposing)
                 {
+                    foreach (var sem in fileLocks.Values)
+                        sem.Dispose();
+
                     fileLocks.Clear();
-                    sharedCts.Cancel();
-                    sharedCts.Dispose();
                 }
             }
         }

@@ -6,6 +6,7 @@ namespace ChatbotLib.Services
 {
     public class ChatService(IDataSavingService savingService, int limit = 50) : IDisposable, IChatService
     {
+        protected static string ChatHistoryFilename => "chathistory.json";
         protected Queue<ChatMessage> messages = [];
         public IEnumerable<ChatMessage> Messages => messages;
 
@@ -29,7 +30,7 @@ namespace ChatbotLib.Services
 
             try
             {
-                await savingService.SaveDataAsJson(messages, "chathistory.json", sharedCts.Token);
+                await savingService.SaveDataAsJson(messages, ChatHistoryFilename, sharedCts.Token);
             }
             finally
             {
@@ -43,7 +44,7 @@ namespace ChatbotLib.Services
 
             try
             {
-                var messages = await savingService.LoadDataAsJson<Queue<ChatMessage>>("chathistory.json", sharedCts.Token);
+                var messages = await savingService.LoadDataAsJson<Queue<ChatMessage>>(ChatHistoryFilename, sharedCts.Token);
                 if (messages is not null)
                     this.messages = messages;
                 else
