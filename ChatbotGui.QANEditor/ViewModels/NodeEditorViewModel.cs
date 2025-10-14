@@ -24,6 +24,8 @@ namespace ChatbotGui.QANEditor.ViewModels
         [ObservableProperty]
         protected QuestionAnswerNodeViewModel selectedNode = selectedNode;
 
+        public static string MainSaveFilename => "qa_main.json";
+
 
         [RelayCommand]
         protected void SelectNode(QuestionAnswerNodeViewModel node)
@@ -60,7 +62,7 @@ namespace ChatbotGui.QANEditor.ViewModels
         [RelayCommand]
         protected async Task SaveHierarchyToMain(CancellationToken token)
         {
-            await dataSavingService.SaveDataAsJson(Hierarchy.HeadNode.GetModel(), "qa_main.json", token);
+            await dataSavingService.SaveDataAsJson(Hierarchy.HeadNode.ContextChildren.Select(vm => vm.GetModel()), MainSaveFilename, token);
         }
         [RelayCommand]
         protected async Task SaveHierarchyToUserFile(CancellationToken token)
@@ -73,11 +75,9 @@ namespace ChatbotGui.QANEditor.ViewModels
             {
                 filename = dialog.FileName;
 
-                if (File.Exists(filename))
-                    File.Delete(filename);
-                using FileStream file = File.OpenWrite(filename);
+                using FileStream file = new(filename, FileMode.Create, FileAccess.Write);
 
-                string json = JsonSerializer.Serialize(Hierarchy.HeadNode.GetModel(), DataSavingService.SerializerOptions);
+                string json = JsonSerializer.Serialize(Hierarchy.HeadNode.ContextChildren.Select(vm => vm.GetModel()), DataSavingService.SerializerOptions);
                 byte[] data = Encoding.UTF8.GetBytes(json);
                 await file.WriteAsync(data, token);
             }

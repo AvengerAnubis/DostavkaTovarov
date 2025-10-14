@@ -33,7 +33,8 @@
                  md:HintAssist.IsFloating="True"
                  Grid.Column="1" Grid.Row="0" 
                  TextWrapping="Wrap"
-                 Text="{Binding Path=ViewModel.SelectedNode.Question, Mode=TwoWay}">
+                 Text="{Binding Path=ViewModel.SelectedNode.Question, Mode=TwoWay}"
+                 IsEnabled="{Binding ViewModel.SelectedNode.IsNotRoot}">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="LostFocus">
                     <i:InvokeCommandAction Command="{Binding ViewModel.SaveNodeCommand}"/>
@@ -46,7 +47,8 @@
                  md:HintAssist.IsFloating="True"
                  Grid.Column="1" Grid.Row="1" 
                  TextWrapping="Wrap"
-                 Text="{Binding Path=ViewModel.SelectedNode.QuestionContexted, Mode=TwoWay}">
+                 Text="{Binding Path=ViewModel.SelectedNode.QuestionContexted, Mode=TwoWay}"
+                 IsEnabled="{Binding ViewModel.SelectedNode.IsNotRoot}">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="LostFocus">
                     <i:InvokeCommandAction Command="{Binding ViewModel.SaveNodeCommand}"/>
@@ -59,7 +61,8 @@
                  md:HintAssist.IsFloating="True"
                  TextWrapping="Wrap"
                   Grid.Column="1" Grid.Row="2" 
-                 Text="{Binding Path=ViewModel.SelectedNode.Answer, Mode=TwoWay}">
+                 Text="{Binding Path=ViewModel.SelectedNode.Answer, Mode=TwoWay}"
+                 IsEnabled="{Binding ViewModel.SelectedNode.IsNotRoot}">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="LostFocus">
                     <i:InvokeCommandAction Command="{Binding ViewModel.SaveNodeCommand}"/>

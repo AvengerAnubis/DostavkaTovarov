@@ -14,17 +14,17 @@ namespace ChatbotLib.Services
         protected QuestionAnswerNode hierarchyHeadNode;
         protected QuestionAnswerNode currentContext;
         protected List<QuestionAnswerNode> allNodes = [];
-        protected CancellationTokenSource sharedCts = new();
 
         public AnswerFinderService(IDataSavingService savingService)
         {
-            var loadedHierarchy = savingService.LoadDataAsJson<QuestionAnswerNode>(HierarchyFileName).Result;
+            var loadedHierarchy = savingService.LoadDataAsJson<List<QuestionAnswerNode>>(HierarchyFileName).Result;
             if (loadedHierarchy is not null)
-                hierarchyHeadNode = loadedHierarchy;
+                hierarchyHeadNode = new() { ContextChildren = loadedHierarchy };
             else
                 hierarchyHeadNode = new();
-            currentContext = new() { ContextChildren = [hierarchyHeadNode] };
+            currentContext = hierarchyHeadNode;
             AddNodeToAllNodes(hierarchyHeadNode);
+            allNodes.Remove(hierarchyHeadNode);
             this.savingService = savingService;
         }
         protected void AddNodeToAllNodes(QuestionAnswerNode node)
@@ -38,29 +38,21 @@ namespace ChatbotLib.Services
             (string question, bool searchInContext = true, int minScoreForContext = 80, CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
-            var registerToken = token.Register(() => sharedCts.Cancel());
 
-            try
-            {
-                question = question.Trim().ToLower();
-                // Первый поиск - в контексте (если набирается достаточный score - возвращаем его)
-                var questions = currentContext.ContextChildren.Select(node => node.QuestionContextedNormalized);
-                var result = await Task.Run(() => FindClosest(question, questions), token);
-                if (result is not null && result.Score >= minScoreForContext)
-                    return ResultFindedActions(currentContext.ContextChildren.ToList()[result.Index], result.Score);
+            question = question.Trim().ToLower();
+            // Первый поиск - в контексте (если набирается достаточный score - возвращаем его)
+            var questions = currentContext.ContextChildren.Select(node => node.QuestionContextedNormalized);
+            var result = await Task.Run(() => FindClosest(question, questions), token);
+            if (result is not null && result.Score >= minScoreForContext)
+                return ResultFindedActions(currentContext.ContextChildren.ToList()[result.Index], result.Score);
 
-                // Второй поиск - вне контекста (возвращаем наибольший score)
-                questions = allNodes.Select(node => node.QuestionNormalized);
-                result = await Task.Run(() => FindClosest(question, questions), token);
-                if (result is not null)
-                    return ResultFindedActions(allNodes[result.Index], result.Score);
+            // Второй поиск - вне контекста (возвращаем наибольший score)
+            questions = allNodes.Select(node => node.QuestionNormalized);
+            result = await Task.Run(() => FindClosest(question, questions), token);
+            if (result is not null)
+                return ResultFindedActions(allNodes[result.Index], result.Score);
 
-                return new();
-            }
-            finally
-            {
-                registerToken.Unregister();
-            }
+            return new();
 
             // todo: сделать нормально
             AnswerFinderResult ResultFindedActions(QuestionAnswerNode node, int score)
@@ -109,8 +101,7 @@ namespace ChatbotLib.Services
                 isDisposed = true;
                 if (disposing)
                 {
-                    sharedCts.Cancel();
-                    sharedCts.Dispose();
+
                 }
             }
         }

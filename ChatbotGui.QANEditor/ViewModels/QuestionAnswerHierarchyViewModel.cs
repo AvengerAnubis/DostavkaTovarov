@@ -3,6 +3,7 @@ using ChatbotLib.DataObjects;
 using ChatbotLib.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.DependencyInjection;
 using System.Collections.ObjectModel;
 
 namespace ChatbotGui.QANEditor.ViewModels
@@ -23,6 +24,7 @@ namespace ChatbotGui.QANEditor.ViewModels
         protected ObservableCollection<QuestionAnswerNodeViewModel> allNodes = [];
 
         public QuestionAnswerHierarchyViewModel(
+            IServiceProvider serviceProvider,
             IDataSavingService dataSavingService,
             IMessenger messenger,
             QuestionAnswerNodeViewModel headNodeViewModel)
@@ -31,10 +33,21 @@ namespace ChatbotGui.QANEditor.ViewModels
             this.messenger = messenger;
             this.messenger.Register(this);
             HeadNode = headNodeViewModel;
+            HeadNode.Question = "Root";
+            HeadNode.QuestionContexted = string.Empty;
+            HeadNode.Answer = string.Empty;
+            HeadNode.IsNotRoot = false;
 
-            var headNode = dataSavingService.LoadDataAsJson<QuestionAnswerNode>(FileName).Result;
+            var headNode = dataSavingService.LoadDataAsJson<List<QuestionAnswerNode>>(FileName).Result;
             if (headNode != null)
-                HeadNode.SetModel(headNode);
+            {
+                foreach (var node in headNode)
+                {
+                    var nodeViewModel = serviceProvider.GetRequiredService<QuestionAnswerNodeViewModel>();
+                    nodeViewModel.SetModel(node);
+                    HeadNode.ContextChildren.Add(nodeViewModel);
+                }
+            }
             HeadNodeCollection.Add(HeadNode);
 
             AddNodeToAllNodes(HeadNode);
@@ -51,7 +64,7 @@ namespace ChatbotGui.QANEditor.ViewModels
 
         protected async Task SaveNodes(CancellationToken token = default)
         {
-            await dataSavingService.SaveDataAsJson(HeadNode.GetModel(), FileName, token);
+            await dataSavingService.SaveDataAsJson(HeadNode.ContextChildren.Select(vm => vm.GetModel()), FileName, token);
         }
 
         public void Receive(NodesChangedMessage message)

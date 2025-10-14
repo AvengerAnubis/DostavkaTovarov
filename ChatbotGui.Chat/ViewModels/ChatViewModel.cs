@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.ObjectModel;
+using System.Windows;
 
 namespace ChatbotGui.Chat.ViewModels
 {
@@ -25,6 +26,7 @@ namespace ChatbotGui.Chat.ViewModels
             Messages.Add(message);
 
             var result = await answerFinderService.FindAnswerNode(userMessage, true, 80, token);
+            MessageBox.Show(result.Score.ToString());
             if (result.FoundNode is not null)
             {
                 // !!! todo: добавить при определенный баллах варианты ответа бота:

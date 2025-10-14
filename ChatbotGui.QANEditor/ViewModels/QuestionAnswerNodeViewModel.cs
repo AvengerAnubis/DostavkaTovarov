@@ -14,13 +14,13 @@ namespace ChatbotGui.QANEditor.ViewModels
         [Required(AllowEmptyStrings = false)]
         protected string question = "Вопрос";
         [ObservableProperty]
-        [Required(AllowEmptyStrings = false)]
         protected string questionContexted = "Вопрос с местоимениями";
         [ObservableProperty]
-        [Required(AllowEmptyStrings = false)]
         protected string answer = "Ответ (каждое сообщение бота через знак \";\")";
         [ObservableProperty]
         protected ObservableCollection<QuestionAnswerNodeViewModel> contextChildren = [];
+        [ObservableProperty]
+        protected bool isNotRoot = true;
 
         public QuestionAnswerNodeViewModel(IServiceProvider serviceProvider)
         {
