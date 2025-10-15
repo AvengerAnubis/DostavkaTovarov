@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace ChatbotLib.Services
 {
-    public class ChatService(IDataSavingService savingService, int limit = 50) : IDisposable, IChatService
+    public class ChatService(IDataSavingService savingService, int limit = 50) : IChatService
     {
         protected static string ChatHistoryFilename => "chathistory.json";
         protected Queue<ChatMessage> messages = [];
@@ -22,29 +22,18 @@ namespace ChatbotLib.Services
         #endregion
         #region Serialization/Deserialization
 
-        protected CancellationTokenSource sharedCts = new();
         public async Task SaveChatHistory(CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
-            var registerToken = token.Register(() => sharedCts.Cancel());
-
-            try
-            {
-                await savingService.SaveDataAsJson(messages, ChatHistoryFilename, sharedCts.Token);
-            }
-            finally
-            {
-                registerToken.Unregister();
-            }
+            await savingService.SaveDataAsJson(messages, ChatHistoryFilename, token);
         }
         public async Task LoadChatHistory(CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
-            var registerToken = token.Register(() => sharedCts.Cancel());
 
             try
             {
-                var messages = await savingService.LoadDataAsJson<Queue<ChatMessage>>(ChatHistoryFilename, sharedCts.Token);
+                var messages = await savingService.LoadDataAsJson<Queue<ChatMessage>>(ChatHistoryFilename, token);
                 if (messages is not null)
                     this.messages = messages;
                 else
@@ -57,32 +46,6 @@ namespace ChatbotLib.Services
             )
             {
                 messages.Clear();
-            }
-            finally
-            {
-                registerToken.Unregister();
-            }
-        }
-        #endregion
-
-        #region Disposing
-        protected bool isDisposed = false;
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!isDisposed)
-            {
-                isDisposed = true;
-                if (disposing)
-                {
-                    sharedCts.Cancel();
-                    sharedCts.Dispose();
-                    messages.Clear();
-                }
             }
         }
         #endregion

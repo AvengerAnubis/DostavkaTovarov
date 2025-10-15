@@ -7,7 +7,7 @@ using FuzzySharp.SimilarityRatio.Scorer.StrategySensitive;
 
 namespace ChatbotLib.Services
 {
-    public class AnswerFinderService : IDisposable, IAnswerFinderService
+    public class AnswerFinderService : IAnswerFinderService
     {
         protected static string HierarchyFileName => "qa_main.json";
         protected IDataSavingService savingService;
@@ -84,26 +84,6 @@ namespace ChatbotLib.Services
         {
             var result = Process.ExtractOne(toFind, strings, s => s, ScorerCache.Get<DefaultRatioScorer>());
             return result;
-        }
-        #endregion
-
-        #region Disposing
-        protected bool isDisposed = false;
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!isDisposed)
-            {
-                isDisposed = true;
-                if (disposing)
-                {
-
-                }
-            }
         }
         #endregion
     }
