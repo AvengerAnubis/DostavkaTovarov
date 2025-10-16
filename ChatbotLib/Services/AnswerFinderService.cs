@@ -14,6 +14,7 @@ namespace ChatbotLib.Services
         protected static string HierarchyFileName => "qa_main.json";
         protected IDataSavingService savingService;
         protected QuestionAnswerNode hierarchyHeadNode;
+        public QuestionAnswerNode HierarchyHeadNode => hierarchyHeadNode;
         protected QuestionAnswerNode currentContext;
         protected List<QuestionAnswerNode> allNodes = [];
 

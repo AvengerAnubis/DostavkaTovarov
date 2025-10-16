@@ -9,7 +9,8 @@ using System.Windows;
 
 namespace ChatbotGui.Chat.ViewModels
 {
-    public partial class ChatViewModel(IServiceProvider serviceProvider, IAnswerFinderService answerFinderService) : ObservableObject
+    public partial class ChatViewModel(IServiceProvider serviceProvider, 
+        IAnswerFinderService answerFinderService) : ObservableObject
     {
         [ObservableProperty]
         protected string messageToSend = string.Empty;
@@ -65,6 +66,13 @@ namespace ChatbotGui.Chat.ViewModels
             {
                 SendBotMessage("Я не понял ваш вопрос. Попробуйте переформулировать ваш вопрос.", false);
                 foreach (string contextQuestion in answerFinderService.GetContextQuestions())
+                    RecommendedMessages.Add(contextQuestion);
+            }
+            if (RecommendedMessages.Count == 0)
+            {
+                IEnumerable<string> headQuestions = answerFinderService.HierarchyHeadNode.ContextChildren
+                    .Select(c => c.Question);
+                foreach (string contextQuestion in headQuestions)
                     RecommendedMessages.Add(contextQuestion);
             }
         }
