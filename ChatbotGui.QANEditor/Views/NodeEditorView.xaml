@@ -21,6 +21,7 @@
             <RowDefinition Height="auto" MinHeight="64" />
             <RowDefinition Height="auto" MinHeight="64" />
             <RowDefinition Height="auto" MinHeight="64" />
+            <RowDefinition Height="auto" MinHeight="64" />
             <RowDefinition Height="48" />
             <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
@@ -60,7 +61,7 @@
                  md:HintAssist.Hint="Ответ"
                  md:HintAssist.IsFloating="True"
                  TextWrapping="Wrap"
-                  Grid.Column="1" Grid.Row="2" 
+                 Grid.Column="1" Grid.Row="2" 
                  Text="{Binding Path=ViewModel.SelectedNode.Answer, Mode=TwoWay}"
                  IsEnabled="{Binding ViewModel.SelectedNode.IsNotRoot}">
             <i:Interaction.Triggers>
@@ -69,9 +70,23 @@
                 </i:EventTrigger>
             </i:Interaction.Triggers>
         </TextBox>
+        
+        <TextBox md:TextFieldAssist.TextBoxIsMultiLine="True"
+                 md:HintAssist.Hint="Ключевые слова"
+                 md:HintAssist.IsFloating="True"
+                 TextWrapping="Wrap"
+                 Grid.Column="1" Grid.Row="3" 
+                 Text="{Binding Path=ViewModel.SelectedNode.Keywords, Mode=TwoWay}"
+                 IsEnabled="{Binding ViewModel.SelectedNode.IsNotRoot}">
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="LostFocus">
+                    <i:InvokeCommandAction Command="{Binding ViewModel.SaveNodeCommand}"/>
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
+        </TextBox>
 
-        <TextBlock Grid.Column="1" Grid.Row="3" Text="Контекстные вопросы"/>
-        <md:Card Grid.Row="4" Grid.Column="1">
+        <TextBlock Grid.Column="1" Grid.Row="4" Text="Контекстные вопросы"/>
+        <md:Card Grid.Row="5" Grid.Column="1">
             <ListView Grid.Row="3" Grid.Column="1" Grid.RowSpan="2" 
                       md:HintAssist.Hint="Контекстные вопросы"
                       md:HintAssist.IsFloating="True"
@@ -118,12 +133,12 @@
 
         <!--#region Кнопки -->
 
-        <Button Grid.Column="1" Grid.Row="5" Content="Добавить контекстный вопрос" 
+        <Button Grid.Column="1" Grid.Row="6" Content="Добавить контекстный вопрос" 
                 VerticalAlignment="Bottom" HorizontalAlignment="Right"
                 Style="{StaticResource PaintedButton}"
                 Command="{Binding ViewModel.AddContextNodeCommand}">
         </Button>
-        <StackPanel Grid.Column="0" Grid.Row="5" Orientation="Horizontal">
+        <StackPanel Grid.Column="0" Grid.Row="6" Orientation="Horizontal">
             <Button Content="Сохранить" Command="{Binding ViewModel.SaveHierarchyToMainCommand}"
                     Style="{StaticResource PaintedButton}"/>
             <Button Content="Сохранить как" Command="{Binding ViewModel.SaveHierarchyToUserFileCommand}"
@@ -134,7 +149,7 @@
         <!--#endregion -->
 
         <!--#region Иерархия -->
-        <md:TreeListView ItemsSource="{Binding ViewModel.Hierarchy.HeadNodeCollection}" Grid.RowSpan="5" >
+        <md:TreeListView ItemsSource="{Binding ViewModel.Hierarchy.HeadNodeCollection}" Grid.RowSpan="6" >
             <md:TreeListView.ItemContainerStyle>
                 <Style TargetType="md:TreeListViewItem" 
                        BasedOn="{StaticResource MaterialDesignTreeListViewItem}">

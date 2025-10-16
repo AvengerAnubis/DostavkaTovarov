@@ -21,6 +21,8 @@ namespace ChatbotGui.QANEditor.ViewModels
         protected ObservableCollection<QuestionAnswerNodeViewModel> contextChildren = [];
         [ObservableProperty]
         protected bool isNotRoot = true;
+        [ObservableProperty]
+        protected string keywords = "Ключевые слова (через пробел)";
 
         public QuestionAnswerNodeViewModel(IServiceProvider serviceProvider)
         {
@@ -36,6 +38,7 @@ namespace ChatbotGui.QANEditor.ViewModels
             Question = node.Question;
             QuestionContexted = node.QuestionContexted;
             Answer = node.Answer;
+            Keywords = node.Keywords;
             ContextChildren.Clear();
             foreach (var child in node.ContextChildren)
             {
@@ -50,8 +53,9 @@ namespace ChatbotGui.QANEditor.ViewModels
             {
                 Question = Question,
                 Answer = Answer,
-                ContextChildren = ContextChildren.Select(vm => vm.GetModel()),
-                QuestionContexted = QuestionContexted
+                ContextChildren = [.. ContextChildren.Select(vm => vm.GetModel())],
+                QuestionContexted = QuestionContexted,
+                Keywords = Keywords
             };
             return node;
         }

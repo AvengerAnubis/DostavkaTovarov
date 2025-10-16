@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FuzzySharp" Version="2.0.2" />
+    <PackageReference Include="Raffinert.FuzzySharp" Version="3.0.6" />
   </ItemGroup>
 
 </Project>

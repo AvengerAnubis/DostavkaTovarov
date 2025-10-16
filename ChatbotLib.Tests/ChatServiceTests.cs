@@ -13,7 +13,7 @@ namespace ChatbotLib.Tests
         public void ChatService_SendMessage_AddsMessagesCorrectly()
         {
             var mockSaver = new Mock<IDataSavingService>();
-            using var chat = new ChatService(mockSaver.Object);
+            var chat = new ChatService(mockSaver.Object);
 
             chat.SendMessage("User", "Hello");
             chat.SendMessage("Bot", "Hi there");
@@ -31,7 +31,7 @@ namespace ChatbotLib.Tests
         public void ChatService_SendMessage_LimitExceeded_RemovesOldestMessage()
         {
             var mockSaver = new Mock<IDataSavingService>();
-            using var chat = new ChatService(mockSaver.Object, limit: 3);
+            var chat = new ChatService(mockSaver.Object, limit: 3);
 
             chat.SendMessage("A", "1");
             chat.SendMessage("B", "2");
@@ -55,7 +55,7 @@ namespace ChatbotLib.Tests
                 .Returns(Task.CompletedTask)
                 .Verifiable();
 
-            using var chat = new ChatService(mockSaver.Object);
+            var chat = new ChatService(mockSaver.Object);
 
             chat.SendMessage("User", "Hello");
             chat.SendMessage("Bot", "Hi!");
@@ -83,7 +83,7 @@ namespace ChatbotLib.Tests
                 .Setup(s => s.LoadDataAsJson<Queue<ChatMessage>>("chathistory.json", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(fakeMessages);
 
-            using var chat = new ChatService(mockSaver.Object);
+            var chat = new ChatService(mockSaver.Object);
 
             await chat.LoadChatHistory();
 
@@ -101,7 +101,7 @@ namespace ChatbotLib.Tests
                 .Setup(s => s.LoadDataAsJson<Queue<ChatMessage>>("chathistory.json", It.IsAny<CancellationToken>()))
                 .ReturnsAsync((Queue<ChatMessage>?)null);
 
-            using var chat = new ChatService(mockSaver.Object);
+            var chat = new ChatService(mockSaver.Object);
 
             chat.SendMessage("Old", "Message");
             await chat.LoadChatHistory();
@@ -117,7 +117,7 @@ namespace ChatbotLib.Tests
                 .Setup(s => s.LoadDataAsJson<Queue<ChatMessage>>("chathistory.json", It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new JsonException());
 
-            using var chat = new ChatService(mockSaver.Object);
+            var chat = new ChatService(mockSaver.Object);
 
             chat.SendMessage("Before", "Test");
             await chat.LoadChatHistory();
@@ -133,7 +133,7 @@ namespace ChatbotLib.Tests
                 .Setup(s => s.SaveDataAsJson(It.IsAny<object>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new OperationCanceledException());
 
-            using var chat = new ChatService(mockSaver.Object);
+            var chat = new ChatService(mockSaver.Object);
             chat.SendMessage("User", "Hello");
 
             using var cts = new CancellationTokenSource();
@@ -153,7 +153,7 @@ namespace ChatbotLib.Tests
                 .Setup(s => s.LoadDataAsJson<Queue<ChatMessage>>("chathistory.json", It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new OperationCanceledException());
 
-            using var chat = new ChatService(mockSaver.Object);
+            var chat = new ChatService(mockSaver.Object);
             using var cts = new CancellationTokenSource();
             cts.Cancel();
 
@@ -161,19 +161,6 @@ namespace ChatbotLib.Tests
             {
                 await chat.LoadChatHistory(cts.Token);
             });
-        }
-
-        [Fact]
-        public void ChatService_Dispose_ClearsMessagesAndDoesNotThrow()
-        {
-            var mockSaver = new Mock<IDataSavingService>();
-            var chat = new ChatService(mockSaver.Object);
-
-            chat.SendMessage("User", "Hello");
-            chat.Dispose();
-
-            Assert.Empty(chat.Messages);
-            chat.Dispose(); // повторный вызов безопасен
         }
     }
 }

@@ -91,7 +91,8 @@
                                 AncestorType=local:ChatView},
                                 Path=ViewModel.SendMessageFromRecommendedCommand}"
                                        CommandParameter="{Binding Path=.}">
-                                <ui:TextBlock Text="{Binding Path=.}"/>
+                                <ui:TextBlock Text="{Binding Path=.}"
+                                              TextWrapping="Wrap"/>
                             </ui:Button>
                         </StackPanel>
                     </DataTemplate>

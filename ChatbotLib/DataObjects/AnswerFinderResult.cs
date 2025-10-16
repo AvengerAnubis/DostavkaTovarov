@@ -2,7 +2,7 @@
 {
     public class AnswerFinderResult
     {
-        public QuestionAnswerNode? FoundNode { get; set; }
+        public QuestionAnswerNode FoundNode { get; set; } = new();
         public int Score { get; set; } = 0;
     }
 }

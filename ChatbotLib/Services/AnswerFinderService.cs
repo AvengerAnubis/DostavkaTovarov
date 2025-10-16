@@ -1,9 +1,11 @@
 ﻿using ChatbotLib.DataObjects;
 using ChatbotLib.Interfaces;
-using FuzzySharp;
-using FuzzySharp.Extractor;
-using FuzzySharp.SimilarityRatio;
-using FuzzySharp.SimilarityRatio.Scorer.StrategySensitive;
+using Raffinert.FuzzySharp;
+using Raffinert.FuzzySharp.Extractor;
+using Raffinert.FuzzySharp.SimilarityRatio;
+using Raffinert.FuzzySharp.SimilarityRatio.Scorer.Composite;
+using Raffinert.FuzzySharp.SimilarityRatio.Scorer.StrategySensitive;
+using System.Xml.Linq;
 
 namespace ChatbotLib.Services
 {
@@ -34,38 +36,6 @@ namespace ChatbotLib.Services
                 AddNodeToAllNodes(subNode);
         }
 
-        public async Task<AnswerFinderResult> FindAnswerNode
-            (string question, bool searchInContext = true, int minScoreForContext = 80, CancellationToken token = default)
-        {
-            token.ThrowIfCancellationRequested();
-
-            question = question.Trim().ToLower();
-            // Первый поиск - в контексте (если набирается достаточный score - возвращаем его)
-            var questions = currentContext.ContextChildren.Select(node => node.QuestionContextedNormalized);
-            var result = await Task.Run(() => FindClosest(question, questions), token);
-            if (result is not null && result.Score >= minScoreForContext)
-                return ResultFindedActions(currentContext.ContextChildren.ToList()[result.Index], result.Score);
-
-            // Второй поиск - вне контекста (возвращаем наибольший score)
-            questions = allNodes.Select(node => node.QuestionNormalized);
-            result = await Task.Run(() => FindClosest(question, questions), token);
-            if (result is not null)
-                return ResultFindedActions(allNodes[result.Index], result.Score);
-
-            return new();
-
-            // todo: сделать нормально
-            AnswerFinderResult ResultFindedActions(QuestionAnswerNode node, int score)
-            {
-                AnswerFinderResult resultObject = new()
-                {
-                    FoundNode = node,
-                    Score = score
-                };
-                ApplyContext(node);
-                return resultObject;
-            }
-        }
         public void ApplyContext(QuestionAnswerNode node)
         {
             if (allNodes.Contains(node))
@@ -74,17 +44,54 @@ namespace ChatbotLib.Services
         public IEnumerable<string> GetContextQuestions()
             => currentContext.ContextChildren.Select(child => child.QuestionContexted);
 
+        public async Task<IEnumerable<AnswerFinderResult>> FindAnswerNode
+            (string question, bool searchInContext = true, int minScoreForContext = 80, 
+            int limit = 5, CancellationToken token = default)
+        {
+            token.ThrowIfCancellationRequested();
+
+            question = question.Trim().ToLower();
+            // Первый поиск - в контексте (если набирается достаточный score - возвращаем его)
+            List<string> questions = [.. currentContext.ContextChildren.Select(node => node.QuestionContextedNormalized)];
+            var result = await Task.Run(() => FindBest(question, questions), token);
+            if (result is not null && result.Score >= minScoreForContext)
+            {
+                QuestionAnswerNode answerNode = currentContext.ContextChildren[result.Index];
+                return [new() { FoundNode = answerNode, Score = result.Score}];
+            }
+            else
+            {
+                // Второй поиск - вне контекста:
+                questions = [.. allNodes.Select(node => node.QuestionNormalized)];
+                //  - фильтруем по ключевым словам
+                var indexes = FilterByKeywords(question, questions);
+                List<QuestionAnswerNode> filteredNodes = [];
+                foreach (var index in indexes)
+                    filteredNodes.Add(allNodes[index]);
+                //  - возвращаем {limit} количество нод (топ по score)
+                var results = await Task.Run(() => FindTop(question, filteredNodes.Select(n => n.QuestionNormalized), limit), token);
+                return results.Select(r => new AnswerFinderResult() 
+                { 
+                    FoundNode = filteredNodes[r.Index], Score = r.Score 
+                });
+            }
+            
+        }
+
+        #region Методы поиска
+        protected static IEnumerable<int> FilterByKeywords(string s, IEnumerable<string> strings)
+        {
+            var result = Process.ExtractAll(s, strings, scorer: ScorerCache.Get<PartialTokenSetScorer>(), cutoff: 60);
+            return result.Select(r => r.Index);
+        }
+        #endregion
         #region Методы сравнения строк
         protected static int CheckRation(string s1, string s2)
-        {
-            var result = Process.ExtractOne(s1, [s2], s => s, ScorerCache.Get<DefaultRatioScorer>());
-            return result.Score;
-        }
-        protected static ExtractedResult<string> FindClosest(string toFind, IEnumerable<string> strings)
-        {
-            var result = Process.ExtractOne(toFind, strings, s => s, ScorerCache.Get<DefaultRatioScorer>());
-            return result;
-        }
+            => Fuzz.PartialRatio(s1, s2);
+        protected static ExtractedResult<string> FindBest(string toFind, IEnumerable<string> strings)
+            => Process.ExtractOne(toFind, strings, scorer: ScorerCache.Get<WeightedRatioScorer>());
+        protected static IEnumerable<ExtractedResult<string>> FindTop(string toFind, IEnumerable<string> strings, int limit)
+            => Process.ExtractTop(toFind, strings, scorer: ScorerCache.Get<WeightedRatioScorer>(), limit: limit);
         #endregion
     }
 }

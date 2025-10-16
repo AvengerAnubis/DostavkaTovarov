@@ -39,8 +39,8 @@ namespace ChatbotLib.Tests
             var mock = new Mock<IDataSavingService>();
 
             // Метод для загрузки данных
-            mock.Setup(s => s.LoadDataAsJson<QuestionAnswerNode>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(hierarchy ?? new());
+            mock.Setup(s => s.LoadDataAsJson<List<QuestionAnswerNode>>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((hierarchy is not null) ? [hierarchy] : []);
 
             return mock;
         }
@@ -51,7 +51,7 @@ namespace ChatbotLib.Tests
             var hierarchy = BuildHierarchy();
 
             IDataSavingService savingService = CreateMockSavingService(hierarchy).Object;
-            using var finder = new AnswerFinderService(savingService);
+            var finder = new AnswerFinderService(savingService);
 
             Assert.NotNull(finder);
         }
@@ -60,7 +60,7 @@ namespace ChatbotLib.Tests
         public void AnswerFinderService_Constructor_FileMissing_CreatesEmptyHierarchy()
         {
             IDataSavingService savingService = CreateMockSavingService().Object;
-            using var finder = new AnswerFinderService(savingService);
+            var finder = new AnswerFinderService(savingService);
             Assert.NotNull(finder);
         }
 
@@ -71,14 +71,14 @@ namespace ChatbotLib.Tests
         {
             var hierarchy = BuildHierarchy();
             IDataSavingService savingService = CreateMockSavingService(hierarchy).Object;
-            using var finder = new AnswerFinderService(savingService);
+            var finder = new AnswerFinderService(savingService);
 
             finder.ApplyContext(hierarchy);
 
             // Проверяем, что теперь поиск в контексте отдаёт этот узел
-            var result = await finder.FindAnswerNode("Почему это важно?", searchInContext: true);
-            Assert.NotNull(result.FoundNode);
-            Assert.Contains("срок", result.FoundNode.Answer, StringComparison.OrdinalIgnoreCase);
+            List<AnswerFinderResult> result = [.. await finder.FindAnswerNode("Почему это важно?", searchInContext: true)];
+            Assert.NotNull(result[0].FoundNode);
+            Assert.Contains("срок", result[0].FoundNode.Answer, StringComparison.OrdinalIgnoreCase);
         }
 
         [Fact]
@@ -86,7 +86,7 @@ namespace ChatbotLib.Tests
         {
             var hierarchy = BuildHierarchy();
             IDataSavingService savingService = CreateMockSavingService(hierarchy).Object;
-            using var finder = new AnswerFinderService(savingService);
+            var finder = new AnswerFinderService(savingService);
 
             var invalidNode = new QuestionAnswerNode
             {
@@ -97,9 +97,9 @@ namespace ChatbotLib.Tests
             finder.ApplyContext(invalidNode); // не должен сработать
 
             // Поиск всё ещё идёт по исходной иерархии
-            var result = await finder.FindAnswerNode("Какая система контролирует сроки?", searchInContext: true);
-            Assert.NotNull(result.FoundNode);
-            Assert.Contains("систем", result.FoundNode.Answer, StringComparison.OrdinalIgnoreCase);
+            List<AnswerFinderResult> result = [..await finder.FindAnswerNode("Какая система контролирует сроки?", searchInContext: true)];
+            Assert.NotNull(result[0].FoundNode);
+            Assert.Contains("систем", result[0].FoundNode.Answer, StringComparison.OrdinalIgnoreCase);
         }
 
         // --- Контекстный поиск (обновлённые тесты) ---
@@ -109,16 +109,16 @@ namespace ChatbotLib.Tests
         {
             var hierarchy = BuildHierarchy();
             IDataSavingService savingService = CreateMockSavingService(hierarchy).Object;
-            using var finder = new AnswerFinderService(savingService);
+            var finder = new AnswerFinderService(savingService);
 
             // Устанавливаем контекст на корневой вопрос
             finder.ApplyContext(hierarchy);
 
-            var result = await finder.FindAnswerNode("какая система контролирует сроки?", searchInContext: true, minScoreForContext: 80);
+            List<AnswerFinderResult> result = [..await finder.FindAnswerNode("какая система контролирует сроки?", searchInContext: true, minScoreForContext: 80)];
 
-            Assert.NotNull(result.FoundNode);
-            Assert.Contains("систем", result.FoundNode.Answer, StringComparison.OrdinalIgnoreCase);
-            Assert.InRange(result.Score, 80, 100);
+            Assert.NotNull(result[0].FoundNode);
+            Assert.Contains("систем", result[0].FoundNode.Answer, StringComparison.OrdinalIgnoreCase);
+            Assert.InRange(result[0].Score, 80, 100);
         }
 
         [Fact]
@@ -126,16 +126,16 @@ namespace ChatbotLib.Tests
         {
             var hierarchy = BuildHierarchy();
             IDataSavingService savingService = CreateMockSavingService(hierarchy).Object;
-            using var finder = new AnswerFinderService(savingService);
+            var finder = new AnswerFinderService(savingService);
 
             finder.ApplyContext(hierarchy); // контекст: "Почему это важно?"
 
             // Этот вопрос не в контексте, значит, поиск должен идти по всем узлам
-            var result = await finder.FindAnswerNode("Как контролируются сроки?", searchInContext: true, minScoreForContext: 80);
+            List<AnswerFinderResult> result = [.. await finder.FindAnswerNode("Как контролируются сроки?", searchInContext: true, minScoreForContext: 80)];
 
-            Assert.NotNull(result.FoundNode);
-            Assert.Contains("сроки", result.FoundNode.Answer, StringComparison.OrdinalIgnoreCase);
-            Assert.InRange(result.Score, 80, 100);
+            Assert.NotNull(result[0].FoundNode);
+            Assert.Contains("сроки", result[0].FoundNode.Answer, StringComparison.OrdinalIgnoreCase);
+            Assert.InRange(result[0].Score, 80, 100);
         }
 
         [Fact]
@@ -143,24 +143,13 @@ namespace ChatbotLib.Tests
         {
             var hierarchy = BuildHierarchy();
             IDataSavingService savingService = CreateMockSavingService(hierarchy).Object;
-            using var finder = new AnswerFinderService(savingService);
+            var finder = new AnswerFinderService(savingService);
             using var cts = new CancellationTokenSource();
             cts.Cancel();
             await Assert.ThrowsAsync<OperationCanceledException>(async () =>
             {
                 await finder.FindAnswerNode("Как контролируются сроки?", token: cts.Token);
             });
-        }
-
-        [Fact]
-        public void AnswerFinderService_Dispose_CancelsAndReleases()
-        {
-            var hierarchy = BuildHierarchy();
-            IDataSavingService savingService = CreateMockSavingService(hierarchy).Object;
-            using var finder = new AnswerFinderService(savingService);
-            finder.Dispose();
-            finder.Dispose(); // повторный вызов не должен кидать исключение
-            Assert.True(true);
         }
     }
 }
