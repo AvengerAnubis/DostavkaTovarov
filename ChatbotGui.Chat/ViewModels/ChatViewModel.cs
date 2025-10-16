@@ -60,6 +60,12 @@ namespace ChatbotGui.Chat.ViewModels
                         RecommendedMessages.Add(relatedQuestion);
                 }
             }
+            else
+            {
+                SendBotMessage("Я не понял ваш вопрос. Попробуйте переформулировать ваш вопрос.", false);
+                foreach (string contextQuestion in answerFinderService.GetContextQuestions())
+                    RecommendedMessages.Add(contextQuestion);
+            }
         }
 
         #region Методы отправки сообщений
