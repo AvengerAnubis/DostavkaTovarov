@@ -29,10 +29,11 @@ namespace ChatbotGui.Chat.ViewModels
             List<AnswerFinderResult> result = [..await answerFinderService.FindAnswerNode(userMessage, true, 80, 5, token)];
             if (result.Count > 0)
             {
-
+                /**
                 MessageBox.Show(result
                     .Select(r => $"{r.FoundNode.Question} - {r.Score}")
                     .Aggregate((s1, s2) => $"{s1}\n{s2}"));
+                **/
 
                 if (result[0].Score >= 80)
                 {
