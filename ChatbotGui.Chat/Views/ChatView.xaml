@@ -107,8 +107,12 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="64" />
             </Grid.ColumnDefinitions>
-            <ui:TextBox Grid.Column="0" Text="{Binding ViewModel.MessageToSend, Mode=TwoWay}" 
-                        Height="48" Margin="16"/>
+            <ui:TextBox Grid.Column="0" Text="{Binding ViewModel.MessageToSend, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                        Height="48" Margin="16">
+                <ui:TextBox.InputBindings>
+                    <KeyBinding Command="{Binding ViewModel.SendMessageCommand}" Key="Return"/>
+                </ui:TextBox.InputBindings>
+            </ui:TextBox>
             <ui:Button Grid.Column="1" Width="48" Height="48"
                        Command="{Binding ViewModel.SendMessageCommand}">
                 <ui:SymbolIcon Symbol="Send24"/>
