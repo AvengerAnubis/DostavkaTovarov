@@ -43,7 +43,7 @@ namespace ChatbotLib.Services
                 currentContext = node;
         }
         public IEnumerable<string> GetContextQuestions()
-            => currentContext.ContextChildren.Select(child => child.QuestionContexted);
+            => currentContext.ContextChildren.Select(child => child.Question);
 
         public async Task<IEnumerable<AnswerFinderResult>> FindAnswerNode
             (string question, bool searchInContext = true, int minScoreForContext = 80, 
