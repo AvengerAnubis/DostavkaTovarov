@@ -24,6 +24,7 @@
                 <Setter Property="Margin" Value="8"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
                 <Setter Property="Foreground" Value="{StaticResource MaterialDesign.Brush.Primary.Foreground}"/>
+                
             </Style>
             <Style TargetType="md:Card"
                    BasedOn="{StaticResource MaterialDesignOutlinedCard}">
